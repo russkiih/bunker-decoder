@@ -10,9 +10,16 @@ import crypto from 'node:crypto';
 const PROPERTY = '561527723';
 const EVENTS = ['listen_started', 'paddle_used', 'decode_success', 'decode_fail', 'copy_grid', 'copy_code'];
 
+const DEFAULT_EMAIL = 'ga4-reader@bunker-decoder.iam.gserviceaccount.com';
+
+// Accepts the whole JSON key file (preferred), base64 of it, or just the PEM private key.
 function loadKey() {
-  const raw = (process.env.GA4_SA_KEY || '').trim();
+  let raw = (process.env.GA4_SA_KEY || '').trim();
   if (!raw) throw new Error('GA4_SA_KEY is not set in this environment.');
+  if (/^(['"]).*\1$/s.test(raw)) raw = raw.slice(1, -1).trim();            // stray surrounding quotes
+  if (raw.includes('BEGIN PRIVATE KEY')) {
+    return { client_email: process.env.GA4_SA_EMAIL || DEFAULT_EMAIL, private_key: raw.replace(/\\n/g, '\n') };
+  }
   const json = raw.startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8');
   const key = JSON.parse(json);
   if (!key.client_email || !key.private_key) throw new Error('GA4_SA_KEY is not a service account JSON key.');
