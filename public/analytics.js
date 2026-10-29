@@ -4,8 +4,7 @@
 
 const SDK = 'https://www.gstatic.com/firebasejs/12.19.0/';
 
-// Public web config for the bunker-decoder Firebase project. measurementId is left out on
-// purpose: the SDK fetches it at runtime once Google Analytics is linked to the project.
+// Public web config for the bunker-decoder Firebase project (GA4 measurement ID included).
 const firebaseConfig = {
   apiKey: 'AIzaSyDux_0DbSaXiSLUt-D4KopT3LT8tSAHX3I',
   authDomain: 'bunker-decoder.firebaseapp.com',
@@ -13,6 +12,7 @@ const firebaseConfig = {
   storageBucket: 'bunker-decoder.firebasestorage.app',
   messagingSenderId: '1016979602645',
   appId: '1:1016979602645:web:b9953646dae4311c7bb65c',
+  measurementId: 'G-EPL6087MJ8',
 };
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];

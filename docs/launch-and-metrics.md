@@ -4,7 +4,7 @@ How Bunker Decoder is wired for analytics, how to post it to the three Discords,
 
 ## 1. One-time setup (manual, in consoles)
 
-1. **Turn on Google Analytics.** Firebase console → bunker-decoder → Project settings → Integrations → Google Analytics → Enable. Pick or create a GA4 account. The page already ships `analytics.js`; once Analytics is linked, the SDK looks up the measurement ID by itself and events start flowing with no redeploy.
+1. **Turn on Google Analytics.** Done: the project is linked to GA4 measurement ID `G-EPL6087MJ8`, which is set in `public/analytics.js`.
 2. **Register the three event parameters as custom dimensions.** GA4 → Admin → Custom definitions → Create custom dimension, scope *Event*:
    - `community` (parameter `community`)
    - `mode` (parameter `mode`)
@@ -12,7 +12,7 @@ How Bunker Decoder is wired for analytics, how to post it to the three Discords,
 
    Without this step, explorations cannot break events down by community or mode. GA4 only collects custom dimension values from the moment they are registered, so do it before launch.
 3. **Optional: BigQuery export.** Firebase console → Project settings → Integrations → BigQuery → Link, with Google Analytics export on. Needed only for the SQL in section 5.
-4. **Set your credit.** In `public/index.html`, fill `const CREDIT = { name: '', twitch: '' }`. The Twitch link then shows in the footer and the About dialog. Add the same line to the README.
+4. **Credit.** Done: `CREDIT` in `public/index.html` is set to Twitch `geezlys`, shown in the footer and About dialog, and in the README. Add a `name` there if you want "Built by <name>" in the About line.
 5. **Check the Discord embed.** DM yourself `https://bunker-decoder.web.app/` in Discord before posting anywhere. You should see the title, description and the grid/code image. Discord caches embeds hard, so if you ever change the image, save it as `og-image-v3.png` and update the four `og:image` / `twitter:image` meta tags.
 
 ## 2. Events
@@ -57,7 +57,7 @@ Post template (one short paragraph, one screenshot or 15-second clip of a real d
 
 > Made a free decoder for the Badlands bunker radio. Hold your phone to the speaker and it turns the Morse broadcast into the 6-digit grid and 4-digit keypad code, or key it in by hand if you'd rather. It checks each digit against the repeat so you know when it's safe to use. Works in the browser, nothing to install: `<community UTM link>`
 >
-> I stream the DayZ side of this at twitch.tv/`<handle>`.
+> I stream the DayZ side of this at twitch.tv/geezlys
 
 The Twitch line is the only Twitch mention in the launch copy. Post a native clip in Discord rather than linking a player.
 
@@ -75,7 +75,7 @@ Build three explorations in GA4 → Explore → Free form (or in Firebase Analyt
 2. **Who takes the output.** Rows: `community`. Columns: Event name. Values: Event count. Filter: event name is one of `copy_grid`, `copy_code`. Shows whether people copy one, both, or just browse.
 3. **Where decoding struggles.** Rows: `mode`. Columns: Event name. Values: Event count. Filter: event name is one of `decode_fail`, `decode_success`. Divide fail by success per mode to see whether audio thresholds or paddle timing need tuning.
 
-**Last month by country**, in GA4: add dimension *Country* to exploration 1 with the date range set to last month. Or in BigQuery once export is on (replace `PROPERTY_ID` with the number in your dataset name):
+**Last month by country**, in GA4: add dimension *Country* to exploration 1 with the date range set to last month. Or in BigQuery once export is on:
 
 ```sql
 -- decode_success by country, previous calendar month
@@ -83,7 +83,7 @@ SELECT
   FORMAT_DATE('%Y-%m', PARSE_DATE('%Y%m%d', event_date)) AS month,
   geo.country AS country,
   COUNT(*) AS decodes
-FROM `bunker-decoder.analytics_PROPERTY_ID.events_*`
+FROM `bunker-decoder.analytics_561527723.events_*`
 WHERE event_name = 'decode_success'
   AND _TABLE_SUFFIX BETWEEN
       FORMAT_DATE('%Y%m%d', DATE_SUB(DATE_TRUNC(CURRENT_DATE(), MONTH), INTERVAL 1 MONTH))
@@ -100,7 +100,7 @@ SELECT
   COUNTIF(event_name = 'decode_success') AS successes,
   COUNTIF(event_name = 'decode_fail') AS fails,
   ROUND(SAFE_DIVIDE(COUNTIF(event_name = 'decode_fail'), COUNTIF(event_name = 'decode_success')), 2) AS fails_per_success
-FROM `bunker-decoder.analytics_PROPERTY_ID.events_*`
+FROM `bunker-decoder.analytics_561527723.events_*`
 WHERE event_name IN ('decode_success', 'decode_fail')
 GROUP BY community, mode
 ORDER BY successes DESC;
