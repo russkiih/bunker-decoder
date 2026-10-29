@@ -43,6 +43,14 @@ DayZero    https://badlands-morse.web.app/?utm_source=discord&utm_medium=communi
 DayOne     https://badlands-morse.web.app/?utm_source=discord&utm_medium=community&utm_campaign=dayone&utm_content=launch
 ```
 
+Reddit gets its own link and shows up as its own `reddit` cohort:
+
+```
+Reddit     https://badlands-morse.web.app/?utm_source=reddit&utm_medium=social&utm_campaign=reddit&utm_content=launch
+```
+
+For Reddit, read each subreddit's rules on self-promotion first, post once with a short clip or screenshot of a real decode, use the right flair, and stay in the comments to answer questions.
+
 Rules for each server:
 
 - Post once, in the designated tools, community-tools or content-creator channel. Read the pinned rules first.
