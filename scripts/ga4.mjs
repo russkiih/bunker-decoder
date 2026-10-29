@@ -17,7 +17,7 @@ function loadKey() {
   let raw = (process.env.GA4_SA_KEY || '').trim();
   if (!raw) throw new Error('GA4_SA_KEY is not set in this environment.');
   if (/^(['"]).*\1$/s.test(raw)) raw = raw.slice(1, -1).trim();            // stray surrounding quotes
-  if (raw.includes('BEGIN PRIVATE KEY')) {
+  if (!raw.startsWith('{') && raw.includes('BEGIN PRIVATE KEY')) {
     return { client_email: process.env.GA4_SA_EMAIL || DEFAULT_EMAIL, private_key: raw.replace(/\\n/g, '\n') };
   }
   const json = raw.startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8');
