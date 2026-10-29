@@ -1,0 +1,4 @@
+{"hosting":{"public":"public","ignore":["firebase.json","**/.*"],
+ "headers":[{"source":"**","headers":[
+   {"key":"Permissions-Policy","value":"microphone=(self)"},
+   {"key":"Cache-Control","value":"no-cache"}]}]}}

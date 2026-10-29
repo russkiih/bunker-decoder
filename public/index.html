@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Bunker Decoder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Text:wght@700;800&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow field-radio column — readout first, input mode below, diagnostics last. Deliberate single dark look. */
+:root{
+  --bg:#171a13; --panel:#20241a; --panel-2:#2a2f22; --line:#3a4030;
+  --fg:#e7e3d2; --muted:#959a84; --amber:#eaa53c; --amber-dim:#7a5a24;
+  --ok:#a6c972; --bad:#e0604f;
+  --f-display:"Big Shoulders Stencil Text", Impact, "Arial Narrow", sans-serif;
+  --f-body:"IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding-block:18px 40px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:18px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-weight:800;font-size:2.4rem;letter-spacing:.04em;line-height:.9;margin:0;text-transform:uppercase}
+.sub{color:var(--muted);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}
+.label{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+
+/* readout */
+.readout{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.row{display:grid;grid-template-columns:1fr auto;align-items:end;gap:12px}
+.row > div{min-width:0}
+.slots{display:flex;gap:2px;align-items:flex-start;margin-top:4px}
+.slots .gapx{width:12px}
+.slot{display:flex;flex-direction:column;align-items:center;width:1.25em;font-size:clamp(2rem,10vw,3.1rem)}
+.slot b{font-family:var(--f-mono);font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.slot small{font:500 .62rem var(--f-mono);color:var(--muted);letter-spacing:0;line-height:1.4}
+.s-empty b{color:var(--line)} .s-single b{color:var(--amber)} .s-confirmed b{color:var(--fg)}
+.s-conflict b{color:var(--bad)} .s-conflict small{color:var(--bad)}
+.copy{font:600 .85rem var(--f-body);letter-spacing:.08em;text-transform:uppercase;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:5px;padding:12px 14px;min-width:84px;cursor:pointer;margin-bottom:18px}
+.copy:disabled{opacity:.35;cursor:default}
+.copy.done{border-color:var(--ok);color:var(--ok)}
+.align{display:flex;gap:10px;align-items:flex-start;border-top:1px dashed var(--line);padding-top:12px;font-size:.9rem}
+.align .dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:6px;background:var(--line)}
+.align.wait .dot{background:var(--amber)} .align.ok .dot{background:var(--ok)} .align.bad .dot{background:var(--bad)}
+.align p{margin:0;max-width:60ch}
+.align p span{color:var(--muted)}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:.75rem;color:var(--muted)}
+.legend b{font-family:var(--f-mono)}
+
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.tabs button{font:600 .9rem var(--f-body);letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--muted);border:0;padding:12px 4px;cursor:pointer}
+.tabs button+button{border-left:1px solid var(--line)}
+.tabs button[aria-selected="true"]{background:var(--panel-2);color:var(--amber)}
+.pane{display:flex;flex-direction:column;gap:14px}
+
+.big{font:700 1.4rem var(--f-display);letter-spacing:.14em;text-transform:uppercase;width:100%;padding:22px;border-radius:6px;border:1px solid var(--amber-dim);background:var(--panel);color:var(--amber);cursor:pointer}
+.big.live{background:var(--amber);color:var(--bg);border-color:var(--amber)}
+.meter{height:10px;background:var(--panel);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--amber-dim);transition:width 60ms linear}
+.meter.on i{background:var(--amber)}
+.pills{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;font-size:.85rem;color:var(--muted)}
+.pill{font:600 .7rem var(--f-body);letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--muted)}
+.pill.ok{color:var(--ok);border-color:var(--ok)}
+.raw{font-family:var(--f-mono);font-size:.9rem;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:10px 12px;min-height:2.6em;overflow-x:auto;white-space:pre}
+.note{font-size:.88rem;color:var(--muted);max-width:62ch;margin:0}
+.note.err{color:var(--bad)}
+
+.sym{font-family:var(--f-mono);font-size:1.8rem;letter-spacing:.25em;min-height:1.4em;text-align:center;color:var(--amber)}
+.sym small{display:block;font:500 .8rem var(--f-body);letter-spacing:.04em;color:var(--muted)}
+.key{border-radius:10px;border:2px solid var(--line);background:var(--panel);color:var(--fg);font:800 1.5rem var(--f-display);letter-spacing:.18em;text-transform:uppercase;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.key small{font:500 .78rem var(--f-body);letter-spacing:.04em;text-transform:none;opacity:.7}
+.key.down{background:var(--amber);color:var(--bg);border-color:var(--amber)}
+.paddle{width:100%;aspect-ratio:1.7;max-width:100%}
+.twokey{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.twokey .key{aspect-ratio:.95;max-width:100%}
+.twokey .key .glyph{font-family:var(--f-mono);font-size:3rem;line-height:1;letter-spacing:0}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font:600 .8rem var(--f-body);letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:5px;padding:12px 14px;cursor:pointer;flex:1 1 auto}
+.btn.mark{border-color:var(--amber-dim);color:var(--amber)}
+details.diag{border-top:1px solid var(--line);padding-top:12px}
+details.diag summary{cursor:pointer;color:var(--muted);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase}
+details.diag[open] summary{margin-bottom:12px}
+.diagbody{display:flex;flex-direction:column;gap:10px}
+button:focus-visible,.key:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.meter i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Bunker<br>Decoder</h1>
+    <div class="sub">Badlands · Morse → grid + keypad</div>
+  </header>
+
+  <section class="readout" aria-live="polite">
+    <div class="row">
+      <div><div class="label">Grid reference · digits 1–6</div><div class="slots" id="gridOut"></div></div>
+      <button class="copy" id="copyGrid" disabled>Copy</button>
+    </div>
+    <div class="row">
+      <div><div class="label">Keypad code · digits 7–10</div><div class="slots" id="codeOut"></div></div>
+      <button class="copy" id="copyCode" disabled>Copy</button>
+    </div>
+    <div class="align" id="alignBox"><span class="dot"></span><p id="alignText"></p></div>
+    <div class="legend"><span><b style="color:var(--line)">_</b> not heard yet</span><span><b style="color:var(--amber)">7</b> heard once</span><span><b>7</b> confirmed by a repeat</span><span><b style="color:var(--bad)">7</b> repeats disagree</span><span>×2 = times heard</span></div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-listen" aria-selected="true" data-pane="listen">Listen</button>
+    <button role="tab" id="tab-twokey" aria-selected="false" data-pane="twokey">Two-key</button>
+    <button role="tab" id="tab-paddle" aria-selected="false" data-pane="paddle">Paddle</button>
+  </div>
+
+  <section class="pane" id="pane-listen">
+    <button class="big" id="listenBtn">Listen</button>
+    <div class="meter" id="meter"><i></i></div>
+    <div class="pills"><span class="pill" id="lockPill">No pitch lock</span><span id="wpmText"></span></div>
+    <div><div class="label">Everything heard, in order</div><div class="raw" id="rawListen"></div></div>
+    <p class="note" id="listenNote">Hold the phone near your speaker while the radio plays. It locks onto the tone pitch, finds the pause between broadcasts, and lines the digits up from there. Let it hear two full broadcasts so every digit gets confirmed.</p>
+  </section>
+
+  <section class="pane" id="pane-twokey" hidden>
+    <div class="sym" id="symTwo">&nbsp;<small>Each digit is 5 symbols. It commits on the 5th.</small></div>
+    <div class="twokey">
+      <button class="key" id="dotKey"><span class="glyph">·</span>Short<small>← or . key</small></button>
+      <button class="key" id="dashKey"><span class="glyph">–</span>Long<small>→ or - key</small></button>
+    </div>
+    <div class="btnrow">
+      <button class="btn" data-undo>Undo</button>
+      <button class="btn mark" data-mark>Broadcast restarts here</button>
+    </div>
+    <div><div class="label">Keyed so far</div><div class="raw" data-raw></div></div>
+  </section>
+
+  <section class="pane" id="pane-paddle" hidden>
+    <div class="sym" id="symPad">&nbsp;<small>Tap = short · hold = long. Commits on the 5th symbol.</small></div>
+    <button class="key paddle" id="paddle">Key<small>Spacebar works on desktop</small></button>
+    <div class="btnrow">
+      <button class="btn" data-undo>Undo</button>
+      <button class="btn mark" data-mark>Broadcast restarts here</button>
+    </div>
+    <div><div class="label">Keyed so far</div><div class="raw" data-raw></div></div>
+  </section>
+
+  <div class="btnrow"><button class="btn" id="clearBtn">Clear everything</button></div>
+
+  <details class="diag">
+    <summary>Diagnostics</summary>
+    <div class="diagbody">
+      <p class="note">These checks run on their own and never touch your readout.</p>
+      <div class="btnrow">
+        <button class="btn" id="selfTestBtn">Run decoder self-test</button>
+        <button class="btn" id="playBtn">Play test broadcast</button>
+      </div>
+      <p class="note" id="testNote"></p>
+    </div>
+  </details>
+</div>
+
+<script>
+// ===== Morse decoder core (shared by audio + paddle) =====
+const MORSE = {
+  '-----':'0','.----':'1','..---':'2','...--':'3','....-':'4','.....':'5','-....':'6','--...':'7','---..':'8','----.':'9',
+  '.-':'A','-...':'B','-.-.':'C','-..':'D','.':'E','..-.':'F','--.':'G','....':'H','..':'I','.---':'J','-.-':'K','.-..':'L','--':'M',
+  '-.':'N','---':'O','.--.':'P','--.-':'Q','.-.':'R','...':'S','-':'T','..-':'U','...-':'V','.--':'W','-..-':'X','-.--':'Y','--..':'Z'
+};
+const DIGIT_TO_MORSE = Object.fromEntries(Object.entries(MORSE).filter(([k,v])=>/\d/.test(v)).map(([k,v])=>[v,k]));
+
+function goertzel(buf, start, n, freq, sr){
+  const k = 2*Math.cos(2*Math.PI*freq/sr);
+  let s1=0, s2=0;
+  for(let i=0;i<n;i++){ const s = buf[start+i] + k*s1 - s2; s2=s1; s1=s; }
+  return Math.sqrt(Math.max(0, s1*s1 + s2*s2 - k*s1*s2)) / n;
+}
+
+// Estimate the dot length from observed mark durations (2-cluster split on log scale).
+function clusterDot(durs, fallback){
+  if(durs.length < 2) return fallback;
+  const xs = durs.slice(-40).map(d=>Math.log(d)).sort((a,b)=>a-b);
+  let best=-1, bestI=-1;
+  const n=xs.length, total=xs.reduce((a,b)=>a+b,0);
+  let left=0;
+  for(let i=1;i<n;i++){
+    left += xs[i-1];
+    const m1=left/i, m2=(total-left)/(n-i);
+    const score = i*(n-i)*(m2-m1)*(m2-m1);
+    if(score>best){best=score; bestI=i;}
+  }
+  const lo = xs.slice(0,bestI), hi = xs.slice(bestI);
+  const mLo = Math.exp(lo.reduce((a,b)=>a+b,0)/lo.length);
+  const mHi = Math.exp(hi.reduce((a,b)=>a+b,0)/hi.length);
+  if(mHi/mLo > 1.9) return { dot:mLo, split:Math.sqrt(mLo*mHi) };
+  // one cluster only: decide whether it is all dots or all dashes relative to the fallback
+  const m = Math.exp(total/n);
+  const fb = fallback.dot;
+  return m > 2*fb ? { dot:m/3, split:m/1.7 } : { dot:m, split:2*m };
+}
+
+class MorseDecoder {
+  constructor({mode='audio', onChar=()=>{}, onBoundary=()=>{}} = {}){
+    this.mode = mode; this.onChar = onChar; this.onBoundary = onBoundary;
+    this.reset();
+  }
+  reset(){
+    this.durs=[]; this.pending=[]; this.on=false; this.startT=0;
+    this.lastEnd = this.mode==='audio' ? 0 : null; this.boundaryDone = this.mode!=='audio';
+    this.est = this.mode==='touch' ? {dot:90, split:180} : {dot:60, split:120};
+  }
+  timing(){
+    const fb = this.mode==='touch' ? {dot:90, split:180} : {dot:60, split:120};
+    this.est = clusterDot(this.durs, this.durs.length<3 ? fb : this.est);
+    if(this.mode==='touch' && this.durs.length<4) this.est = {dot:90, split:180};
+    const d = this.est.dot;
+    return this.mode==='touch'
+      ? { charGap: Math.max(450, 3*d), wordGap: Infinity }
+      : { charGap: 2*d, wordGap: 5*d };
+  }
+  toneStart(t){
+    if(this.on) return;
+    if(this.lastEnd!==null){
+      const gap = t - this.lastEnd, g = this.timing();
+      if(this.pending.length && gap >= g.charGap) this.flush();
+      if(!this.boundaryDone && gap >= g.wordGap){ this.onBoundary(gap); }
+    }
+    this.boundaryDone = false;
+    this.on=true; this.startT=t;
+  }
+  toneEnd(t){
+    if(!this.on) return;
+    const dur = t - this.startT;
+    this.on=false;
+    if(dur < 12) return;                   // glitch
+    this.durs.push(dur); if(this.durs.length>80) this.durs.shift();
+    this.pending.push(dur); this.lastEnd=t;
+    if(this.mode==='touch' && this.pending.length>=5) this.flush();
+  }
+  tick(now){
+    if(this.on || this.lastEnd===null) return;
+    const gap = now - this.lastEnd, g = this.timing();
+    if(this.pending.length && gap >= g.charGap) this.flush();
+  }
+  flush(){
+    this.timing();
+    const code = this.pending.map(d => d > this.est.split ? '-' : '.').join('');
+    this.pending=[];
+    this.onChar(MORSE[code] || null, code);
+  }
+}
+
+// Goertzel tone detector: coarse 10 Hz scan over 50 ms windows to find the pitch, then 5 ms blocks.
+class ToneDetector {
+  constructor(sr, decoder, {onLock=()=>{}, onLevel=()=>{}} = {}){
+    this.sr=sr; this.dec=decoder; this.onLock=onLock; this.onLevel=onLevel;
+    this.block = Math.round(sr*0.005); this.scanN = Math.round(sr*0.05);
+    this.buf = new Float32Array(0); this.consumed=0;
+    this.freq=null; this.floor=null; this.peak=0; this.state=false; this.lastToneT=0;
+  }
+  get t(){ return this.consumed/this.sr*1000; }
+  push(samples){
+    const nb = new Float32Array(this.buf.length + samples.length);
+    nb.set(this.buf); nb.set(samples, this.buf.length); this.buf = nb;
+    let pos = 0;
+    while(true){
+      if(this.freq===null){
+        if(this.buf.length - pos < this.scanN) break;
+        const f = this.scan(pos);
+        if(f){ this.freq=f.f; this.floor=f.noise; this.peak=f.noise*3; this.onLock(f.f); continue; } // re-run window in blocks
+        pos += this.scanN; this.consumed += this.scanN;
+      } else {
+        if(this.buf.length - pos < this.block) break;
+        this.step(goertzel(this.buf, pos, this.block, this.freq, this.sr));
+        pos += this.block; this.consumed += this.block;
+      }
+    }
+    this.buf = this.buf.slice(pos);
+    this.dec.tick(this.t);
+  }
+  scan(pos){
+    const mags=[]; let best=0, bestF=0;
+    for(let f=300; f<=1500; f+=10){
+      const m = goertzel(this.buf, pos, this.scanN, f, this.sr); mags.push(m);
+      if(m>best){best=m; bestF=f;}
+    }
+    mags.sort((a,b)=>a-b);
+    const median = mags[mags.length>>1] || 1e-12;
+    return (best > 1e-4 && best > 8*median) ? {f:bestF, noise: median*Math.sqrt(this.scanN/this.block)} : null;
+  }
+  step(m){
+    if(this.floor===null){ this.floor=m; this.peak=m; }
+    this.peak = Math.max(m, this.peak*0.9985);
+    if(m < this.floor) this.floor = this.floor*0.6 + m*0.4; else this.floor += (m-this.floor)*0.0015;
+    const span = this.peak - this.floor;
+    const valid = this.peak > 3*this.floor + 1e-5;
+    const hi = this.floor + 0.5*span, lo = this.floor + 0.3*span;
+    const t = this.t;
+    if(!this.state && valid && m > hi){ this.state=true; this.dec.toneStart(t); }
+    else if(this.state && (m < lo || !valid)){ this.state=false; this.dec.toneEnd(t); }
+    if(this.state) this.lastToneT = t;
+    this.onLevel(valid ? Math.min(1,(m-this.floor)/(span||1)) : 0, this.state);
+    // lost the tone for a long time: rescan for a new pitch
+    if(!this.state && t - this.lastToneT > 6000){ this.freq=null; this.lastToneT=t; }
+  }
+}
+
+// Collects digits, finds message alignment from long pauses, and votes across repeats.
+class MessageAssembler {
+  constructor(len=10){ this.len=len; this.reset(); }
+  reset(){ this.digits=[]; this.gaps={}; this.raw=''; }
+  addChar(c){ this.raw += c || '?'; if(c && /\d/.test(c)) this.digits.push(c); }
+  addBoundary(gapMs){
+    const p = this.digits.length; this.raw += ' ';
+    this.gaps[p] = Math.max(this.gaps[p]||0, gapMs);
+  }
+  removeLast(){
+    if(!this.digits.length) return false;
+    this.digits.pop();
+    for(const p of Object.keys(this.gaps)) if(+p>this.digits.length) delete this.gaps[p];
+    this.raw = this.raw.replace(/\d(?=[^\d]*$)/,'');
+    return true;
+  }
+  hasStart(){ return Object.keys(this.gaps).some(p=>+p<this.digits.length); }
+  offset(aligned){
+    if(!aligned) return 0;
+    const score = new Array(this.len).fill(0);
+    for(const [p,g] of Object.entries(this.gaps)) if(+p<this.digits.length) score[p%this.len]+=g;
+    let o=0; for(let i=1;i<this.len;i++) if(score[i]>score[o]) o=i;
+    return score[o]>0 ? o : 0;
+  }
+  result(aligned=true){
+    const L=this.len, D=this.digits, o=this.offset(aligned);
+    const votes = Array.from({length:L}, ()=>({}));
+    D.forEach((d,i)=>{ const pos = ((i - o) % L + L) % L; votes[pos][d]=(votes[pos][d]||0)+1; });
+    const cells = votes.map(v=>{
+      const ents = Object.entries(v).sort((a,b)=>b[1]-a[1]);
+      if(!ents.length) return {d:null, n:0, state:'empty'};
+      const n = ents.reduce((a,e)=>a+e[1],0);
+      const state = ents.length>1 ? 'conflict' : (n>=2 ? 'confirmed' : 'single');
+      return {d:ents[0][0], n, state};
+    });
+    const repeats = Math.floor(Math.max(0, D.length - (o? (L-o)%L : 0)) / L);
+    return { cells, repeats, total:D.length, complete: cells.every(c=>c.d!==null) };
+  }
+}
+
+// Build a synthetic Morse tone (for the self-test and the speaker test).
+function synthMorse(digits, {sr=48000, freq=600, wpm=20, noise=0.05, repeats=2, lead=400, pause=1500}={}){
+  const dot = 1200/wpm, seq=[];
+  seq.push([false, lead]);
+  for(let r=0;r<repeats;r++){
+    [...digits].forEach((d,i)=>{
+      [...DIGIT_TO_MORSE[d]].forEach((s,j)=>{ if(j) seq.push([false,dot]); seq.push([true, s==='.'?dot:3*dot]); });
+      if(i<digits.length-1) seq.push([false, 3*dot]);
+    });
+    seq.push([false, pause]);
+  }
+  const total = Math.ceil(seq.reduce((a,s)=>a+s[1],0)/1000*sr);
+  const out = new Float32Array(total); let idx=0, ph=0, env=0;
+  const w=2*Math.PI*freq/sr, ramp = 1/(0.004*sr);
+  for(const [on,ms] of seq){
+    const n=Math.round(ms/1000*sr);
+    for(let i=0;i<n && idx<total;i++,idx++){
+      env = on ? Math.min(1,env+ramp) : Math.max(0,env-ramp);
+      out[idx] = 0.5*env*Math.sin(ph) + noise*(Math.random()*2-1); ph+=w;
+    }
+  }
+  return out;
+}
+
+// Run a whole buffer through the pipeline (file decode + self-test).
+function decodeBuffer(samples, sr){
+  const asm = new MessageAssembler();
+  const dec = new MorseDecoder({mode:'audio', onChar:c=>asm.addChar(c), onBoundary:g=>asm.addBoundary(g)});
+  let freq=null;
+  const det = new ToneDetector(sr, dec, {onLock:f=>{ if(freq===null) freq=f; }});
+  const chunk = 4096;
+  for(let i=0;i<samples.length;i+=chunk) det.push(samples.subarray(i, Math.min(samples.length,i+chunk)));
+  det.push(new Float32Array(Math.round(sr*1.5)));
+  return { asm, freq };
+}
+
+if(typeof module!=='undefined') module.exports = {MORSE, goertzel, MorseDecoder, ToneDetector, MessageAssembler, synthMorse, decodeBuffer};
+
+</script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const all = sel => document.querySelectorAll(sel);
+const TEST_DIGITS = '0770581234';
+const DIGITS = {'-----':'0','.----':'1','..---':'2','...--':'3','....-':'4','.....':'5','-....':'6','--...':'7','---..':'8','----.':'9'};
+
+let asm = new MessageAssembler();
+let source = null;           // null | 'listen' | 'keyed'
+let keyedRaw = '';
+
+// ---------- readout ----------
+function cells(){
+  const r = asm.result(true);
+  const waiting = source==='listen' && !asm.hasStart();
+  if(waiting) r.cells = r.cells.map(()=>({d:null,n:0,state:'empty'}));
+  return {r, waiting};
+}
+function render(){
+  const {r, waiting} = cells();
+  const slot = c => `<span class="slot s-${c.state}"><b>${c.d ?? '_'}</b><small>${c.n>1?'×'+c.n:(c.n?'×1':'&nbsp;')}</small></span>`;
+  $('gridOut').innerHTML = r.cells.slice(0,3).map(slot).join('') + '<span class="gapx"></span>' + r.cells.slice(3,6).map(slot).join('');
+  $('codeOut').innerHTML = r.cells.slice(6,10).map(slot).join('');
+  $('copyGrid').disabled = !r.cells.slice(0,6).every(c=>c.d);
+  $('copyCode').disabled = !r.cells.slice(6).every(c=>c.d);
+
+  const box = $('alignBox'), txt = $('alignText');
+  const bad = r.cells.filter(c=>c.state==='conflict').length;
+  const conf = r.cells.filter(c=>c.state==='confirmed').length;
+  const got = r.cells.filter(c=>c.d).length;
+  let cls='', msg='';
+  if(!source){ msg = 'Nothing yet. <span>Pick Listen, Two-key or Paddle below. Slots fill left to right: 1–6 are the grid, 7–10 the keypad code.</span>'; }
+  else if(waiting){ cls='wait'; msg = `Lining up… <span>Heard ${asm.digits.length} digit${asm.digits.length===1?'':'s'} mid-broadcast (see the list below). Slots fill once the pause before digit 1 is heard.</span>`; }
+  else if(bad){ cls='bad'; msg = `${bad} digit${bad>1?'s':''} disagree between repeats. <span>Keep listening; a third pass settles it.</span>`; }
+  else if(conf===10){ cls='ok'; msg = 'All 10 digits confirmed by a repeat. <span>Safe to use.</span>'; }
+  else if(got===10){ cls='ok'; msg = `All 10 digits heard, ${conf} confirmed. <span>One more pass confirms the rest.</span>`; }
+  else {
+    cls='wait';
+    const startTxt = source==='listen' ? 'Lined up on the pause before digit 1.' : (asm.hasStart() ? 'Lined up on your “restarts here” mark.' : 'Your first keyed digit is slot 1. If you started mid-broadcast, tap “Broadcast restarts here” when it repeats.');
+    msg = `${got} of 10 heard. <span>${startTxt}</span>`;
+  }
+  box.className = 'align '+cls; txt.innerHTML = msg;
+}
+
+function clearAll(){
+  if(stream) stopListen();
+  asm = new MessageAssembler(); source=null; keyedRaw=''; liveRaw='';
+  resetKeys();
+  all('[data-raw]').forEach(e=>e.textContent=''); $('rawListen').textContent='';
+  render();
+}
+$('clearBtn').onclick = clearAll;
+
+async function copyText(btn, text){
+  const done = t => { btn.classList.add('done'); btn.textContent=t; setTimeout(()=>{btn.classList.remove('done'); btn.textContent='Copy';},1400); };
+  try { await navigator.clipboard.writeText(text); done('Copied'); }
+  catch { const el = btn.previousElementSibling.querySelector('.slots'); const rg=document.createRange(); rg.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); done('Selected'); }
+}
+const digitsNow = () => cells().r.cells.map(x=>x.d).join('');
+$('copyGrid').onclick = () => { const c=digitsNow(); copyText($('copyGrid'), c.slice(0,3)+' '+c.slice(3,6)); };
+$('copyCode').onclick = () => copyText($('copyCode'), digitsNow().slice(6,10));
+
+// ---------- tabs ----------
+let pane='listen';
+all('.tabs button').forEach(b => b.onclick = () => {
+  all('.tabs button').forEach(x => x.setAttribute('aria-selected', x===b));
+  pane = b.dataset.pane;
+  ['listen','twokey','paddle'].forEach(p => $('pane-'+p).hidden = p!==pane);
+});
+
+// ---------- sidetone ----------
+let sideCtx=null, osc=null;
+function tone(on, ms){
+  try{
+    if(!sideCtx) sideCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(on){ if(osc) return; osc = sideCtx.createOscillator(); const g=sideCtx.createGain(); g.gain.value=0.07; osc.frequency.value=600; osc.connect(g); g.connect(sideCtx.destination); osc.start(); if(ms){ const o=osc; osc=null; o.stop(sideCtx.currentTime+ms/1000); } }
+    else if(osc){ osc.stop(); osc=null; }
+  }catch{}
+}
+
+// ---------- keyed input (shared by Two-key and Paddle) ----------
+function startKeyed(){
+  if(source==='listen'){ if(stream) stopListen(); asm = new MessageAssembler(); $('rawListen').textContent=''; }
+  source='keyed';
+}
+function addKeyedChar(code){
+  const c = DIGITS[code] || null;
+  asm.addChar(c);
+  keyedRaw += c ? c : '?';
+  showRaw(); render();
+  return c;
+}
+function showRaw(){ all('[data-raw]').forEach(e=>e.textContent = keyedRaw || ' '); }
+function showSym(el, syms, hint){ el.innerHTML = (syms.length ? syms.join(' ') : '&nbsp;') + `<small>${hint}</small>`; }
+
+// Two-key: left = short, right = long
+let twoSyms=[];
+const TWO_HINT='Each digit is 5 symbols. It commits on the 5th.';
+function twoPress(s){
+  startKeyed(); tone(true, s==='.'?90:270);
+  twoSyms.push(s);
+  if(twoSyms.length===5){
+    const code=twoSyms.join(''); twoSyms=[];
+    const c = addKeyedChar(code);
+    showSym($('symTwo'), [], c ? `${code} → ${c}` : `${code} is not a digit, skipped`);
+  } else showSym($('symTwo'), twoSyms.map(x=>x==='.'?'·':'–'), `${5-twoSyms.length} more`);
+}
+function flash(el){ el.classList.add('down'); setTimeout(()=>el.classList.remove('down'),120); }
+$('dotKey').addEventListener('pointerdown', e=>{ e.preventDefault(); flash($('dotKey')); twoPress('.'); });
+$('dashKey').addEventListener('pointerdown', e=>{ e.preventDefault(); flash($('dashKey')); twoPress('-'); });
+['dotKey','dashKey','paddle'].forEach(id=>$(id).addEventListener('contextmenu', e=>e.preventDefault()));
+
+// Paddle: timed key, shared decoder
+let pdec=null, pTimer=0, padDown=false;
+const PAD_HINT='Tap = short · hold = long. Commits on the 5th symbol.';
+function ensurePdec(){
+  if(pdec) return;
+  pdec = new MorseDecoder({mode:'touch', onChar:(c,code)=>{
+    const d = addKeyedChar(code);
+    showSym($('symPad'), [], d ? `${code} → ${d}` : `${code} is not a digit, skipped`);
+  }});
+}
+function padDownFn(){
+  if(padDown) return; padDown=true;
+  startKeyed(); ensurePdec(); clearInterval(pTimer);
+  pdec.toneStart(performance.now()); $('paddle').classList.add('down'); tone(true);
+}
+function padUpFn(){
+  if(!padDown) return; padDown=false;
+  pdec.toneEnd(performance.now()); $('paddle').classList.remove('down'); tone(false);
+  if(pdec.pending.length) showSym($('symPad'), pdec.pending.map(d=>d>pdec.est.split?'–':'·'), `${5-pdec.pending.length} more`);
+  clearInterval(pTimer); pTimer = setInterval(()=>{ pdec.tick(performance.now()); if(!pdec.pending.length) clearInterval(pTimer); }, 40);
+}
+const pad=$('paddle');
+pad.addEventListener('pointerdown', e=>{ e.preventDefault(); pad.setPointerCapture?.(e.pointerId); padDownFn(); });
+pad.addEventListener('pointerup', e=>{ e.preventDefault(); padUpFn(); });
+pad.addEventListener('pointercancel', padUpFn);
+
+function resetKeys(){
+  twoSyms=[]; if(pdec){ pdec.pending=[]; } clearInterval(pTimer);
+  showSym($('symTwo'), [], TWO_HINT); showSym($('symPad'), [], PAD_HINT);
+}
+
+// Undo: first drops unfinished symbols, then the last digit
+function undo(){
+  if(pane==='twokey' && twoSyms.length){ twoSyms.pop(); showSym($('symTwo'), twoSyms.map(x=>x==='.'?'·':'–'), twoSyms.length?`${5-twoSyms.length} more`:'Removed last symbol'); return; }
+  if(pane==='paddle' && pdec && pdec.pending.length){ pdec.pending.pop(); showSym($('symPad'), pdec.pending.map(d=>d>pdec.est.split?'–':'·'), pdec.pending.length?`${5-pdec.pending.length} more`:'Removed last symbol'); return; }
+  if(source!=='keyed' || !keyedRaw) return;
+  const last = keyedRaw.slice(-1);
+  keyedRaw = keyedRaw.slice(0,-1);
+  if(last==='|'){ const p = asm.digits.length; delete asm.gaps[p]; }
+  else if(last!=='?') asm.removeLast();
+  showRaw(); render();
+  const el = pane==='paddle' ? $('symPad') : $('symTwo');
+  showSym(el, [], last==='|' ? 'Removed the restart mark' : `Removed ${last==='?'?'skipped symbol group':'digit '+last}`);
+}
+all('[data-undo]').forEach(b=>b.onclick=undo);
+
+// Mark: the broadcast is starting over, next digit is slot 1
+function mark(){
+  startKeyed();
+  const p = asm.digits.length;
+  asm.gaps[p] = 1e9;              // strongest possible alignment hint
+  keyedRaw += '|'; showRaw(); render();
+}
+all('[data-mark]').forEach(b=>b.onclick=mark);
+
+// Keyboard
+window.addEventListener('keydown', e=>{
+  if(e.target.closest && e.target.closest('summary')) return;
+  if(pane==='twokey'){
+    if(['ArrowLeft','Period','NumpadDecimal'].includes(e.code)){ e.preventDefault(); flash($('dotKey')); twoPress('.'); }
+    else if(['ArrowRight','Minus','NumpadSubtract'].includes(e.code)){ e.preventDefault(); flash($('dashKey')); twoPress('-'); }
+  }
+  if(pane==='paddle' && e.code==='Space' && !e.repeat){ e.preventDefault(); padDownFn(); }
+  if((pane==='paddle'||pane==='twokey') && e.code==='Backspace'){ e.preventDefault(); undo(); }
+});
+window.addEventListener('keyup', e=>{ if(pane==='paddle' && e.code==='Space'){ e.preventDefault(); padUpFn(); } });
+
+// ---------- Listen (live mic) ----------
+let ctx=null, stream=null, proc=null, det=null, wake=null, liveRaw='', levelNow=0, toneNow=false, raf=0;
+async function startListen(){
+  const note = $('listenNote');
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1}});
+  }catch(e){
+    stream=null; note.className='note err';
+    note.textContent = 'Microphone is blocked here. Open the hosted copy of this page to listen live. Two-key and Paddle work anywhere.';
+    return;
+  }
+  note.className='note'; note.textContent='Listening. Nothing is recorded or sent anywhere.';
+  ctx = new (window.AudioContext||window.webkitAudioContext)(); await ctx.resume();
+  asm = new MessageAssembler(); source='listen'; liveRaw=''; keyedRaw=''; showRaw(); resetKeys(); render();
+  const dec = new MorseDecoder({mode:'audio',
+    onChar:c=>{ asm.addChar(c); liveRaw += c||'?'; $('rawListen').textContent=liveRaw.slice(-60); render(); },
+    onBoundary:g=>{ asm.addBoundary(g); liveRaw += ' | '; $('rawListen').textContent=liveRaw.slice(-60); render(); }});
+  det = new ToneDetector(ctx.sampleRate, dec, {
+    onLock:f=>{ const p=$('lockPill'); p.textContent=`Locked ${f} Hz`; p.className='pill ok'; },
+    onLevel:(lv,on)=>{ levelNow=lv; toneNow=on; }
+  });
+  const src = ctx.createMediaStreamSource(stream);
+  proc = ctx.createScriptProcessor(2048,1,1);
+  proc.onaudioprocess = e => det && det.push(e.inputBuffer.getChannelData(0).slice());
+  const mute = ctx.createGain(); mute.gain.value=0;
+  src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
+  $('listenBtn').textContent='Stop'; $('listenBtn').classList.add('live');
+  try{ wake = await navigator.wakeLock?.request('screen'); }catch{}
+  meterLoop();
+}
+function meterLoop(){
+  $('meter').querySelector('i').style.width = (levelNow*100).toFixed(0)+'%';
+  $('meter').classList.toggle('on', toneNow);
+  if(det && det.dec.durs.length>3) $('wpmText').textContent = `~${Math.round(1200/det.dec.est.dot)} WPM`;
+  if(stream) raf = requestAnimationFrame(meterLoop);
+}
+function stopListen(){
+  proc?.disconnect(); stream?.getTracks().forEach(t=>t.stop()); ctx?.close();
+  stream=null; proc=null; ctx=null; det=null; cancelAnimationFrame(raf);
+  try{ wake?.release(); }catch{} wake=null;
+  $('listenBtn').textContent='Listen'; $('listenBtn').classList.remove('live');
+  $('meter').querySelector('i').style.width='0'; $('lockPill').textContent='No pitch lock'; $('lockPill').className='pill'; $('wpmText').textContent='';
+}
+$('listenBtn').onclick = () => stream ? stopListen() : startListen();
+
+// ---------- Diagnostics (isolated from the readout) ----------
+$('selfTestBtn').onclick = () => {
+  const sr=48000, sig = synthMorse(TEST_DIGITS, {sr, freq:600, wpm:20, noise:0.08, repeats:2});
+  const t0=performance.now(); const res = decodeBuffer(sig, sr); const ms = performance.now()-t0;
+  const out = res.asm.result(true).cells.map(c=>c.d??'_').join('');
+  $('testNote').textContent = `${out===TEST_DIGITS?'Pass':'Fail'}: a synthetic ${res.freq} Hz broadcast of ${TEST_DIGITS} decoded as ${out} in ${ms.toFixed(0)} ms.`;
+};
+let playing=null;
+$('playBtn').onclick = () => {
+  if(playing){ try{playing.stop();}catch{} return; }
+  const ac = new (window.AudioContext||window.webkitAudioContext)();
+  const sig = synthMorse(TEST_DIGITS, {sr:ac.sampleRate, noise:0, repeats:2});
+  const b = ac.createBuffer(1, sig.length, ac.sampleRate); b.copyToChannel(sig,0);
+  const s = ac.createBufferSource(); s.buffer=b; s.connect(ac.destination); s.start();
+  playing=s; $('playBtn').textContent='Stop test broadcast';
+  $('testNote').textContent = `Playing ${TEST_DIGITS} twice at 600 Hz. Point another phone running Listen at this speaker.`;
+  s.onended=()=>{ playing=null; $('playBtn').textContent='Play test broadcast'; ac.close(); };
+};
+
+resetKeys(); render();
+})();
+</script>
+</body>
+</html>
