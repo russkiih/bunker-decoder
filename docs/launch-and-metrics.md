@@ -74,6 +74,9 @@ The Twitch line is the only Twitch mention in the launch copy. Post a native cli
 
 ## 5. Live view
 
+**From a Claude cloud session.** The read-only service account `ga4-reader@bunker-decoder.iam.gserviceaccount.com` has Viewer access to GA4 property 561527723, and its key is stored in the cloud environment as `GA4_SA_KEY`. In any new session run `node scripts/ga4.mjs realtime` for the last 30 minutes, or `node scripts/ga4.mjs report 14` for events by community and mode, decodes by country and first-touch campaigns.
+
+
 GA4 → Reports → Realtime shows active users, events and countries for the last 30 minutes, about a minute behind. The Google Analytics phone app shows the same Realtime view. Full reports and explorations fill in 24 to 48 hours later. There is deliberately no live counter on the page itself (see section 4).
 
 ## 6. Two-week review
