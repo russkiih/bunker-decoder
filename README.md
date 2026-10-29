@@ -4,6 +4,10 @@ Single-page web app that decodes a Morse-code radio broadcast into a six-digit g
 
 Live: https://bunker-decoder.web.app
 
+## Languages
+
+English, Russian, German, Polish, Spanish, French and Brazilian Portuguese. The app opens in the phone's language and has a picker in the header. A link can force one with `?lang=`, for example `https://bunker-decoder.web.app/?lang=ru`. Translations live in the `STR` table in `public/index.html`.
+
 ## Deploy
 
 ```

@@ -6,15 +6,15 @@
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>Bunker Decoder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Text:wght@700;800&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Text:wght@700;800&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Oswald:wght@600;700&family=Roboto+Condensed:wght@400;500;600&display=swap">
 <style>
 /* Layout: one narrow field-radio column — readout first, input mode below, diagnostics last. Deliberate single dark look. */
 :root{
   --bg:#171a13; --panel:#20241a; --panel-2:#2a2f22; --line:#3a4030;
   --fg:#e7e3d2; --muted:#959a84; --amber:#eaa53c; --amber-dim:#7a5a24;
   --ok:#a6c972; --bad:#e0604f;
-  --f-display:"Big Shoulders Stencil Text", Impact, "Arial Narrow", sans-serif;
-  --f-body:"IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-display:"Big Shoulders Stencil Text", "Oswald", Impact, "Arial Narrow", sans-serif;
+  --f-body:"IBM Plex Sans Condensed", "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   color-scheme:dark;
 }
@@ -73,7 +73,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:2.4rem;letter-spacing:
 .key small{font:500 .78rem var(--f-body);letter-spacing:.04em;text-transform:none;opacity:.7}
 .key.down{background:var(--amber);color:var(--bg);border-color:var(--amber)}
 .paddle{width:100%;aspect-ratio:1.7;max-width:100%}
-.twokey{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.twokey{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
 .twokey .key{aspect-ratio:.95;max-width:100%}
 .twokey .key .glyph{font-family:var(--f-mono);font-size:3rem;line-height:1;letter-spacing:0}
 .btnrow{display:flex;gap:10px;flex-wrap:wrap}
@@ -83,7 +83,9 @@ details.diag{border-top:1px solid var(--line);padding-top:12px}
 details.diag summary{cursor:pointer;color:var(--muted);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase}
 details.diag[open] summary{margin-bottom:12px}
 .diagbody{display:flex;flex-direction:column;gap:10px}
-button:focus-visible,.key:focus-visible,summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.hright{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.lang{font:600 .85rem var(--f-body);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:5px;padding:8px 10px;min-height:40px;cursor:pointer}
+button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.meter i{transition:none}}
 </style>
 </head>
@@ -91,67 +93,67 @@ button:focus-visible,.key:focus-visible,summary:focus-visible{outline:2px solid 
 <div class="wrap">
   <header>
     <h1>Bunker<br>Decoder</h1>
-    <div class="sub">Badlands · Morse → grid + keypad</div>
+    <div class="hright"><select class="lang" id="langSel" aria-label="Language"></select><div class="sub" data-i18n="sub">Badlands · Morse → grid + keypad</div></div>
   </header>
 
   <section class="readout" aria-live="polite">
     <div class="row">
-      <div><div class="label">Grid reference · digits 1–6</div><div class="slots" id="gridOut"></div></div>
-      <button class="copy" id="copyGrid" disabled>Copy</button>
+      <div><div class="label" data-i18n="gridLabel">Grid reference · digits 1–6</div><div class="slots" id="gridOut"></div></div>
+      <button class="copy" id="copyGrid" data-i18n="copy" disabled>Copy</button>
     </div>
     <div class="row">
-      <div><div class="label">Keypad code · digits 7–10</div><div class="slots" id="codeOut"></div></div>
-      <button class="copy" id="copyCode" disabled>Copy</button>
+      <div><div class="label" data-i18n="codeLabel">Keypad code · digits 7–10</div><div class="slots" id="codeOut"></div></div>
+      <button class="copy" id="copyCode" data-i18n="copy" disabled>Copy</button>
     </div>
     <div class="align" id="alignBox"><span class="dot"></span><p id="alignText"></p></div>
-    <div class="legend"><span><b style="color:var(--line)">_</b> not heard yet</span><span><b style="color:var(--amber)">7</b> heard once</span><span><b>7</b> confirmed by a repeat</span><span><b style="color:var(--bad)">7</b> repeats disagree</span><span>×2 = times heard</span></div>
+    <div class="legend"><span><b style="color:var(--line)">_</b> <span data-i18n="lgEmpty">not heard yet</span></span><span><b style="color:var(--amber)">7</b> <span data-i18n="lgOnce">heard once</span></span><span><b>7</b> <span data-i18n="lgConf">confirmed by a repeat</span></span><span><b style="color:var(--bad)">7</b> <span data-i18n="lgBad">repeats disagree</span></span><span data-i18n="lgTimes">×2 = times heard</span></div>
   </section>
 
   <div class="tabs" role="tablist">
-    <button role="tab" id="tab-listen" aria-selected="true" data-pane="listen">Listen</button>
-    <button role="tab" id="tab-twokey" aria-selected="false" data-pane="twokey">Two-key</button>
-    <button role="tab" id="tab-paddle" aria-selected="false" data-pane="paddle">Paddle</button>
+    <button role="tab" id="tab-listen" aria-selected="true" data-pane="listen" data-i18n="tabListen">Listen</button>
+    <button role="tab" id="tab-twokey" aria-selected="false" data-pane="twokey" data-i18n="tabTwo">Two-key</button>
+    <button role="tab" id="tab-paddle" aria-selected="false" data-pane="paddle" data-i18n="tabPaddle">Paddle</button>
   </div>
 
   <section class="pane" id="pane-listen">
     <button class="big" id="listenBtn">Listen</button>
     <div class="meter" id="meter"><i></i></div>
     <div class="pills"><span class="pill" id="lockPill">No pitch lock</span><span id="wpmText"></span></div>
-    <div><div class="label">Everything heard, in order</div><div class="raw" id="rawListen"></div></div>
+    <div><div class="label" data-i18n="heardLabel">Everything heard, in order</div><div class="raw" id="rawListen"></div></div>
     <p class="note" id="listenNote">Hold the phone near your speaker while the radio plays. It locks onto the tone pitch, finds the pause between broadcasts, and lines the digits up from there. Let it hear two full broadcasts so every digit gets confirmed.</p>
   </section>
 
   <section class="pane" id="pane-twokey" hidden>
     <div class="sym" id="symTwo">&nbsp;<small>Each digit is 5 symbols. It commits on the 5th.</small></div>
     <div class="twokey">
-      <button class="key" id="dotKey"><span class="glyph">·</span>Short<small>← or . key</small></button>
-      <button class="key" id="dashKey"><span class="glyph">–</span>Long<small>→ or - key</small></button>
+      <button class="key" id="dotKey"><span class="glyph">·</span><span data-i18n="short">Short</span><small data-i18n="dotKeyHint">← or . key</small></button>
+      <button class="key" id="dashKey"><span class="glyph">–</span><span data-i18n="long">Long</span><small data-i18n="dashKeyHint">→ or - key</small></button>
     </div>
     <div class="btnrow">
-      <button class="btn" data-undo>Undo</button>
-      <button class="btn mark" data-mark>Broadcast restarts here</button>
+      <button class="btn" data-undo data-i18n="undo">Undo</button>
+      <button class="btn mark" data-mark data-i18n="mark">Broadcast restarts here</button>
     </div>
-    <div><div class="label">Keyed so far</div><div class="raw" data-raw></div></div>
+    <div><div class="label" data-i18n="keyedLabel">Keyed so far</div><div class="raw" data-raw></div></div>
   </section>
 
   <section class="pane" id="pane-paddle" hidden>
     <div class="sym" id="symPad">&nbsp;<small>Tap = short · hold = long. Commits on the 5th symbol.</small></div>
-    <button class="key paddle" id="paddle">Key<small>Spacebar works on desktop</small></button>
+    <button class="key paddle" id="paddle"><span data-i18n="key">Key</span><small data-i18n="spaceHint">Spacebar works on desktop</small></button>
     <div class="btnrow">
-      <button class="btn" data-undo>Undo</button>
-      <button class="btn mark" data-mark>Broadcast restarts here</button>
+      <button class="btn" data-undo data-i18n="undo">Undo</button>
+      <button class="btn mark" data-mark data-i18n="mark">Broadcast restarts here</button>
     </div>
-    <div><div class="label">Keyed so far</div><div class="raw" data-raw></div></div>
+    <div><div class="label" data-i18n="keyedLabel">Keyed so far</div><div class="raw" data-raw></div></div>
   </section>
 
-  <div class="btnrow"><button class="btn" id="clearBtn">Clear everything</button></div>
+  <div class="btnrow"><button class="btn" id="clearBtn" data-i18n="clear">Clear everything</button></div>
 
   <details class="diag">
-    <summary>Diagnostics</summary>
+    <summary data-i18n="diag">Diagnostics</summary>
     <div class="diagbody">
-      <p class="note">These checks run on their own and never touch your readout.</p>
+      <p class="note" data-i18n="diagNote">These checks run on their own and never touch your readout.</p>
       <div class="btnrow">
-        <button class="btn" id="selfTestBtn">Run decoder self-test</button>
+        <button class="btn" id="selfTestBtn" data-i18n="selfTest">Run decoder self-test</button>
         <button class="btn" id="playBtn">Play test broadcast</button>
       </div>
       <p class="note" id="testNote"></p>
@@ -384,6 +386,299 @@ if(typeof module!=='undefined') module.exports = {MORSE, goertzel, MorseDecoder,
 
 </script>
 <script>
+// ===== Localization: 7 languages. Digits and Morse stay universal; only words change. =====
+const LANGS = [['en','English'],['ru','Русский'],['de','Deutsch'],['pl','Polski'],['es','Español'],['fr','Français'],['pt-BR','Português (BR)']];
+const STR = {
+en:{
+  language:'Language',
+  sub:'Badlands · Morse → grid + keypad',
+  gridLabel:'Grid reference · digits 1–6', codeLabel:'Keypad code · digits 7–10',
+  copy:'Copy', copied:'Copied', selected:'Selected',
+  lgEmpty:'not heard yet', lgOnce:'heard once', lgConf:'confirmed by a repeat', lgBad:'repeats disagree', lgTimes:'×2 = times heard',
+  tabListen:'Listen', tabTwo:'Two-key', tabPaddle:'Paddle',
+  listen:'Listen', stop:'Stop',
+  noLock:'No pitch lock', locked:'Locked {f} Hz', wpm:'~{n} WPM',
+  heardLabel:'Everything heard, in order',
+  listenIntro:'Hold the phone near your speaker while the radio plays. It locks onto the tone pitch, finds the pause between broadcasts, and lines the digits up from there. Let it hear two full broadcasts so every digit gets confirmed.',
+  micBlocked:'Microphone is blocked. Allow microphone access for this site in your browser settings, then tap Listen again. Two-key and Paddle work without it.',
+  listening:'Listening. Nothing is recorded or sent anywhere.',
+  twoHint:'Each digit is 5 symbols. It commits on the 5th.',
+  short:'Short', long:'Long', dotKeyHint:'← or . key', dashKeyHint:'→ or - key',
+  undo:'Undo', mark:'Broadcast restarts here', keyedLabel:'Keyed so far',
+  padHint:'Tap = short · hold = long. Commits on the 5th symbol.',
+  key:'Key', spaceHint:'Spacebar works on desktop',
+  clear:'Clear everything',
+  diag:'Diagnostics', diagNote:'These checks run on their own and never touch your readout.',
+  selfTest:'Run decoder self-test', play:'Play test broadcast', stopPlay:'Stop test broadcast',
+  pass:'Pass', fail:'Fail',
+  selfTestResult:'{r}: a synthetic {f} Hz broadcast of {d} decoded as {o} in {ms} ms.',
+  playing:'Playing {d} twice at 600 Hz. Point another phone running Listen at this speaker.',
+  stNothing:'Nothing yet. <span>Pick Listen, Two-key or Paddle below. Slots fill left to right: 1–6 are the grid, 7–10 the keypad code.</span>',
+  stLining:{one:'Lining up… <span>Heard {n} digit mid-broadcast (see the list below). Slots fill once the pause before digit 1 is heard.</span>',
+            other:'Lining up… <span>Heard {n} digits mid-broadcast (see the list below). Slots fill once the pause before digit 1 is heard.</span>'},
+  stConflict:{one:'{n} digit disagrees between repeats. <span>Keep listening; a third pass settles it.</span>',
+              other:'{n} digits disagree between repeats. <span>Keep listening; a third pass settles it.</span>'},
+  stAllConf:'All 10 digits confirmed by a repeat. <span>Safe to use.</span>',
+  stAllHeard:'All 10 digits heard, {n} confirmed. <span>One more pass confirms the rest.</span>',
+  stProgress:'{n} of 10 heard. <span>{start}</span>',
+  startListen:'Lined up on the pause before digit 1.',
+  startMark:'Lined up on your “restarts here” mark.',
+  startFirst:'Your first keyed digit is slot 1. If you started mid-broadcast, tap “Broadcast restarts here” when it repeats.',
+  symCommitted:'{code} → {d}', symNotDigit:'{code} is not a digit, skipped', symMore:'{n} more',
+  removedSym:'Removed last symbol', removedMark:'Removed the restart mark', removedSkip:'Removed skipped symbol group', removedDigit:'Removed digit {d}'
+},
+ru:{
+  language:'Язык',
+  sub:'Badlands · Морзе → координаты + код',
+  gridLabel:'Координаты на карте · цифры 1–6', codeLabel:'Код панели · цифры 7–10',
+  copy:'Копировать', copied:'Скопировано', selected:'Выделено',
+  lgEmpty:'ещё не услышано', lgOnce:'услышано один раз', lgConf:'подтверждено повтором', lgBad:'повторы расходятся', lgTimes:'×2 = сколько раз услышано',
+  tabListen:'Слушать', tabTwo:'Две кнопки', tabPaddle:'Ключ',
+  listen:'Слушать', stop:'Стоп',
+  noLock:'Тон не пойман', locked:'Тон {f} Гц', wpm:'~{n} сл/мин',
+  heardLabel:'Всё услышанное по порядку',
+  listenIntro:'Держите телефон рядом с динамиком, пока играет радио. Приложение ловит частоту тона, находит паузу между передачами и выравнивает цифры по ней. Дайте ему услышать две полные передачи, чтобы каждая цифра подтвердилась.',
+  micBlocked:'Микрофон заблокирован. Разрешите этому сайту доступ к микрофону в настройках браузера и снова нажмите «Слушать». «Две кнопки» и «Ключ» работают и без него.',
+  listening:'Слушаю. Ничего не записывается и никуда не отправляется.',
+  twoHint:'Каждая цифра — 5 символов. Ввод завершается на 5-м.',
+  short:'Точка', long:'Тире', dotKeyHint:'← или клавиша .', dashKeyHint:'→ или клавиша -',
+  undo:'Отменить', mark:'Передача началась заново', keyedLabel:'Введено',
+  padHint:'Касание = точка · удержание = тире. Ввод завершается на 5-м символе.',
+  key:'Ключ', spaceHint:'На компьютере работает пробел',
+  clear:'Очистить всё',
+  diag:'Диагностика', diagNote:'Эти проверки работают отдельно и не трогают ваши результаты.',
+  selfTest:'Самопроверка декодера', play:'Тестовая передача', stopPlay:'Остановить тест',
+  pass:'Успех', fail:'Ошибка',
+  selfTestResult:'{r}: синтетическая передача {d} на {f} Гц расшифрована как {o} за {ms} мс.',
+  playing:'Играет {d} дважды на 600 Гц. Направьте на этот динамик другой телефон в режиме «Слушать».',
+  stNothing:'Пока пусто. <span>Выберите ниже «Слушать», «Две кнопки» или «Ключ». Ячейки заполняются слева направо: 1–6 — координаты, 7–10 — код панели.</span>',
+  stLining:'Выравнивание… <span>Цифр услышано посреди передачи: {n} (список ниже). Ячейки заполнятся, когда прозвучит пауза перед цифрой 1.</span>',
+  stConflict:'Повторы расходятся в цифрах: {n}. <span>Слушайте дальше: третий проход всё решит.</span>',
+  stAllConf:'Все 10 цифр подтверждены повтором. <span>Можно использовать.</span>',
+  stAllHeard:'Все 10 цифр услышаны, подтверждено: {n}. <span>Ещё один проход подтвердит остальные.</span>',
+  stProgress:'Услышано {n} из 10. <span>{start}</span>',
+  startListen:'Выровнено по паузе перед цифрой 1.',
+  startMark:'Выровнено по вашей отметке «началась заново».',
+  startFirst:'Первая введённая цифра — ячейка 1. Если вы начали посреди передачи, нажмите «Передача началась заново», когда она повторится.',
+  symCommitted:'{code} → {d}', symNotDigit:'{code} — не цифра, пропущено', symMore:'ещё {n}',
+  removedSym:'Последний символ удалён', removedMark:'Отметка начала удалена', removedSkip:'Пропущенная группа удалена', removedDigit:'Цифра {d} удалена'
+},
+de:{
+  language:'Sprache',
+  sub:'Badlands · Morse → Koordinate + Code',
+  gridLabel:'Kartenkoordinate · Ziffern 1–6', codeLabel:'Tastenfeld-Code · Ziffern 7–10',
+  copy:'Kopieren', copied:'Kopiert', selected:'Markiert',
+  lgEmpty:'noch nicht gehört', lgOnce:'einmal gehört', lgConf:'durch Wiederholung bestätigt', lgBad:'Wiederholungen widersprechen sich', lgTimes:'×2 = wie oft gehört',
+  tabListen:'Hören', tabTwo:'Zwei Tasten', tabPaddle:'Taste',
+  listen:'Hören', stop:'Stopp',
+  noLock:'Kein Ton erfasst', locked:'Ton bei {f} Hz', wpm:'~{n} WpM',
+  heardLabel:'Alles Gehörte, der Reihe nach',
+  listenIntro:'Halte das Handy an deinen Lautsprecher, während das Funkgerät läuft. Die App erfasst die Tonhöhe, findet die Pause zwischen den Sendungen und richtet die Ziffern daran aus. Lass sie zwei komplette Sendungen hören, damit jede Ziffer bestätigt wird.',
+  micBlocked:'Das Mikrofon ist blockiert. Erlaube dieser Seite in den Browser-Einstellungen den Mikrofonzugriff und tippe dann erneut auf „Hören“. „Zwei Tasten“ und „Taste“ funktionieren auch ohne.',
+  listening:'Hört zu. Nichts wird aufgenommen oder irgendwohin gesendet.',
+  twoHint:'Jede Ziffer hat 5 Zeichen. Nach dem 5. wird sie übernommen.',
+  short:'Kurz', long:'Lang', dotKeyHint:'← oder Taste .', dashKeyHint:'→ oder Taste -',
+  undo:'Rückgängig', mark:'Sendung beginnt hier neu', keyedLabel:'Bisher eingegeben',
+  padHint:'Tippen = kurz · Halten = lang. Nach dem 5. Zeichen übernommen.',
+  key:'Taste', spaceHint:'Am Computer geht auch die Leertaste',
+  clear:'Alles löschen',
+  diag:'Diagnose', diagNote:'Diese Tests laufen separat und ändern nie deine Anzeige.',
+  selfTest:'Decoder-Selbsttest starten', play:'Testsendung abspielen', stopPlay:'Testsendung stoppen',
+  pass:'Bestanden', fail:'Fehlgeschlagen',
+  selfTestResult:'{r}: Eine synthetische {f}-Hz-Sendung von {d} wurde in {ms} ms als {o} dekodiert.',
+  playing:'Spielt {d} zweimal bei 600 Hz. Richte ein zweites Handy mit „Hören“ auf diesen Lautsprecher.',
+  stNothing:'Noch nichts. <span>Wähle unten „Hören“, „Zwei Tasten“ oder „Taste“. Die Felder füllen sich von links nach rechts: 1–6 sind die Koordinate, 7–10 der Tastenfeld-Code.</span>',
+  stLining:{one:'Wird ausgerichtet… <span>{n} Ziffer mitten in der Sendung gehört (siehe Liste unten). Die Felder füllen sich, sobald die Pause vor Ziffer 1 gehört wurde.</span>',
+            other:'Wird ausgerichtet… <span>{n} Ziffern mitten in der Sendung gehört (siehe Liste unten). Die Felder füllen sich, sobald die Pause vor Ziffer 1 gehört wurde.</span>'},
+  stConflict:{one:'Bei {n} Ziffer widersprechen sich die Wiederholungen. <span>Weiter zuhören, ein dritter Durchgang entscheidet.</span>',
+              other:'Bei {n} Ziffern widersprechen sich die Wiederholungen. <span>Weiter zuhören, ein dritter Durchgang entscheidet.</span>'},
+  stAllConf:'Alle 10 Ziffern durch Wiederholung bestätigt. <span>Sicher verwendbar.</span>',
+  stAllHeard:'Alle 10 Ziffern gehört, {n} bestätigt. <span>Ein weiterer Durchgang bestätigt den Rest.</span>',
+  stProgress:'{n} von 10 gehört. <span>{start}</span>',
+  startListen:'An der Pause vor Ziffer 1 ausgerichtet.',
+  startMark:'An deiner Markierung „beginnt hier neu“ ausgerichtet.',
+  startFirst:'Deine erste eingegebene Ziffer ist Feld 1. Wenn du mitten in der Sendung angefangen hast, tippe auf „Sendung beginnt hier neu“, sobald sie sich wiederholt.',
+  symCommitted:'{code} → {d}', symNotDigit:'{code} ist keine Ziffer, übersprungen', symMore:'noch {n}',
+  removedSym:'Letztes Zeichen entfernt', removedMark:'Neustart-Markierung entfernt', removedSkip:'Übersprungene Zeichengruppe entfernt', removedDigit:'Ziffer {d} entfernt'
+},
+pl:{
+  language:'Język',
+  sub:'Badlands · Morse → współrzędne + kod',
+  gridLabel:'Współrzędne · cyfry 1–6', codeLabel:'Kod do klawiatury · cyfry 7–10',
+  copy:'Kopiuj', copied:'Skopiowano', selected:'Zaznaczono',
+  lgEmpty:'jeszcze nieusłyszane', lgOnce:'usłyszane raz', lgConf:'potwierdzone powtórzeniem', lgBad:'powtórzenia się różnią', lgTimes:'×2 = ile razy usłyszane',
+  tabListen:'Słuchaj', tabTwo:'Dwa klawisze', tabPaddle:'Klucz',
+  listen:'Słuchaj', stop:'Stop',
+  noLock:'Brak tonu', locked:'Ton {f} Hz', wpm:'~{n} sł./min',
+  heardLabel:'Wszystko, co usłyszano, po kolei',
+  listenIntro:'Trzymaj telefon przy głośniku, gdy gra radio. Aplikacja łapie wysokość tonu, znajduje przerwę między transmisjami i od niej układa cyfry. Pozwól jej usłyszeć dwie pełne transmisje, żeby każda cyfra została potwierdzona.',
+  micBlocked:'Mikrofon jest zablokowany. Zezwól tej stronie na dostęp do mikrofonu w ustawieniach przeglądarki i ponownie naciśnij „Słuchaj”. „Dwa klawisze” i „Klucz” działają bez niego.',
+  listening:'Słucham. Nic nie jest nagrywane ani nigdzie wysyłane.',
+  twoHint:'Każda cyfra to 5 znaków. Zatwierdza się po piątym.',
+  short:'Krótki', long:'Długi', dotKeyHint:'← lub klawisz .', dashKeyHint:'→ lub klawisz -',
+  undo:'Cofnij', mark:'Transmisja zaczyna się od nowa', keyedLabel:'Wpisano do tej pory',
+  padHint:'Stuknij = krótki · przytrzymaj = długi. Zatwierdza się po piątym znaku.',
+  key:'Klucz', spaceHint:'Na komputerze działa spacja',
+  clear:'Wyczyść wszystko',
+  diag:'Diagnostyka', diagNote:'Te testy działają osobno i nigdy nie zmieniają twojego odczytu.',
+  selfTest:'Uruchom autotest dekodera', play:'Odtwórz transmisję testową', stopPlay:'Zatrzymaj transmisję testową',
+  pass:'Zaliczony', fail:'Niezaliczony',
+  selfTestResult:'{r}: syntetyczną transmisję {d} na {f} Hz odczytano jako {o} w {ms} ms.',
+  playing:'Odtwarzam {d} dwa razy na 600 Hz. Skieruj na ten głośnik drugi telefon w trybie „Słuchaj”.',
+  stNothing:'Jeszcze nic. <span>Wybierz poniżej „Słuchaj”, „Dwa klawisze” lub „Klucz”. Pola wypełniają się od lewej: 1–6 to współrzędne, 7–10 to kod do klawiatury.</span>',
+  stLining:'Wyrównywanie… <span>Cyfry usłyszane w trakcie transmisji: {n} (lista poniżej). Pola wypełnią się po usłyszeniu przerwy przed cyfrą 1.</span>',
+  stConflict:'Cyfry, w których powtórzenia się różnią: {n}. <span>Słuchaj dalej, trzecie przejście rozstrzygnie.</span>',
+  stAllConf:'Wszystkie 10 cyfr potwierdzone powtórzeniem. <span>Można używać.</span>',
+  stAllHeard:'Usłyszano wszystkie 10 cyfr, potwierdzone: {n}. <span>Jeszcze jedno przejście potwierdzi resztę.</span>',
+  stProgress:'Usłyszano {n} z 10. <span>{start}</span>',
+  startListen:'Wyrównane do przerwy przed cyfrą 1.',
+  startMark:'Wyrównane do twojego znacznika „od nowa”.',
+  startFirst:'Pierwsza wpisana cyfra to pole 1. Jeśli wpisywanie zaczęło się w trakcie transmisji, naciśnij „Transmisja zaczyna się od nowa”, gdy się powtórzy.',
+  symCommitted:'{code} → {d}', symNotDigit:'{code} to nie cyfra, pominięto', symMore:'jeszcze {n}',
+  removedSym:'Usunięto ostatni znak', removedMark:'Usunięto znacznik ponownego startu', removedSkip:'Usunięto pominiętą grupę znaków', removedDigit:'Usunięto cyfrę {d}'
+},
+es:{
+  language:'Idioma',
+  sub:'Badlands · Morse → coordenadas + teclado',
+  gridLabel:'Coordenadas · dígitos 1–6', codeLabel:'Código del teclado · dígitos 7–10',
+  copy:'Copiar', copied:'Copiado', selected:'Seleccionado',
+  lgEmpty:'aún no oído', lgOnce:'oído una vez', lgConf:'confirmado al repetirse', lgBad:'las repeticiones no coinciden', lgTimes:'×2 = veces oído',
+  tabListen:'Escuchar', tabTwo:'Dos teclas', tabPaddle:'Pulsador',
+  listen:'Escuchar', stop:'Detener',
+  noLock:'Sin tono fijado', locked:'Tono a {f} Hz', wpm:'~{n} PPM',
+  heardLabel:'Todo lo oído, en orden',
+  listenIntro:'Acerca el móvil al altavoz mientras suena la radio. Fija el tono, encuentra la pausa entre emisiones y alinea los dígitos a partir de ahí. Deja que oiga dos emisiones completas para que cada dígito quede confirmado.',
+  micBlocked:'El micrófono está bloqueado. Permite el acceso al micrófono para este sitio en los ajustes del navegador y vuelve a tocar «Escuchar». «Dos teclas» y «Pulsador» funcionan sin él.',
+  listening:'Escuchando. No se graba ni se envía nada.',
+  twoHint:'Cada dígito son 5 símbolos. Se registra con el quinto.',
+  short:'Corto', long:'Largo', dotKeyHint:'← o tecla .', dashKeyHint:'→ o tecla -',
+  undo:'Deshacer', mark:'La emisión se reinicia aquí', keyedLabel:'Introducido hasta ahora',
+  padHint:'Toque = corto · mantener = largo. Se registra con el quinto símbolo.',
+  key:'Pulsar', spaceHint:'En ordenador funciona la barra espaciadora',
+  clear:'Borrar todo',
+  diag:'Diagnóstico', diagNote:'Estas pruebas funcionan por separado y nunca tocan tu lectura.',
+  selfTest:'Autoprueba del decodificador', play:'Reproducir emisión de prueba', stopPlay:'Detener emisión de prueba',
+  pass:'Correcto', fail:'Fallo',
+  selfTestResult:'{r}: una emisión sintética de {d} a {f} Hz se decodificó como {o} en {ms} ms.',
+  playing:'Reproduciendo {d} dos veces a 600 Hz. Apunta otro móvil con «Escuchar» hacia este altavoz.',
+  stNothing:'Nada aún. <span>Elige abajo «Escuchar», «Dos teclas» o «Pulsador». Las casillas se llenan de izquierda a derecha: 1–6 son las coordenadas, 7–10 el código del teclado.</span>',
+  stLining:{one:'Alineando… <span>Se ha oído {n} dígito a mitad de emisión (mira la lista de abajo). Las casillas se llenan al oír la pausa antes del dígito 1.</span>',
+            other:'Alineando… <span>Se han oído {n} dígitos a mitad de emisión (mira la lista de abajo). Las casillas se llenan al oír la pausa antes del dígito 1.</span>'},
+  stConflict:{one:'{n} dígito no coincide entre repeticiones. <span>Sigue escuchando: una tercera pasada lo resuelve.</span>',
+              other:'{n} dígitos no coinciden entre repeticiones. <span>Sigue escuchando: una tercera pasada lo resuelve.</span>'},
+  stAllConf:'Los 10 dígitos están confirmados por una repetición. <span>Listo para usar.</span>',
+  stAllHeard:{one:'Los 10 dígitos oídos, {n} confirmado. <span>Una pasada más confirma el resto.</span>',
+              other:'Los 10 dígitos oídos, {n} confirmados. <span>Una pasada más confirma el resto.</span>'},
+  stProgress:'{n} de 10 oídos. <span>{start}</span>',
+  startListen:'Alineado con la pausa antes del dígito 1.',
+  startMark:'Alineado con tu marca «se reinicia aquí».',
+  startFirst:'Tu primer dígito introducido es la casilla 1. Si empezaste a mitad de emisión, toca «La emisión se reinicia aquí» cuando se repita.',
+  symCommitted:'{code} → {d}', symNotDigit:'{code} no es un dígito, omitido', symMore:'faltan {n}',
+  removedSym:'Último símbolo eliminado', removedMark:'Marca de reinicio eliminada', removedSkip:'Grupo de símbolos omitido eliminado', removedDigit:'Dígito {d} eliminado'
+},
+fr:{
+  language:'Langue',
+  sub:'Badlands · Morse → coordonnées + code',
+  gridLabel:'Coordonnées · chiffres 1–6', codeLabel:'Code du clavier · chiffres 7–10',
+  copy:'Copier', copied:'Copié', selected:'Sélectionné',
+  lgEmpty:'pas encore entendu', lgOnce:'entendu une fois', lgConf:'confirmé par une répétition', lgBad:'les répétitions divergent', lgTimes:'×2 = nombre d’écoutes',
+  tabListen:'Écouter', tabTwo:'Deux touches', tabPaddle:'Clé',
+  listen:'Écouter', stop:'Arrêter',
+  noLock:'Aucune tonalité', locked:'Tonalité {f} Hz', wpm:'~{n} mots/min',
+  heardLabel:'Tout ce qui a été entendu, dans l’ordre',
+  listenIntro:'Approche le téléphone de ton haut-parleur pendant que la radio joue. L’appli se cale sur la tonalité, repère la pause entre les émissions et aligne les chiffres à partir de là. Laisse-la entendre deux émissions complètes pour confirmer chaque chiffre.',
+  micBlocked:'Le micro est bloqué. Autorise l’accès au micro pour ce site dans les réglages du navigateur, puis touche à nouveau « Écouter ». « Deux touches » et « Clé » fonctionnent sans micro.',
+  listening:'Écoute en cours. Rien n’est enregistré ni envoyé.',
+  twoHint:'Chaque chiffre fait 5 symboles. Il est validé au 5e.',
+  short:'Court', long:'Long', dotKeyHint:'← ou touche .', dashKeyHint:'→ ou touche -',
+  undo:'Annuler', mark:'L’émission recommence ici', keyedLabel:'Saisi jusqu’ici',
+  padHint:'Appui bref = court · maintien = long. Validé au 5e symbole.',
+  key:'Clé', spaceHint:'Sur ordinateur, la barre d’espace marche aussi',
+  clear:'Tout effacer',
+  diag:'Diagnostic', diagNote:'Ces tests tournent à part et ne touchent jamais ton affichage.',
+  selfTest:'Lancer l’autotest du décodeur', play:'Jouer une émission test', stopPlay:'Arrêter l’émission test',
+  pass:'Réussi', fail:'Échec',
+  selfTestResult:'{r} : une émission synthétique de {d} à {f} Hz a été décodée en {o} en {ms} ms.',
+  playing:'Lecture de {d} deux fois à 600 Hz. Pointe un autre téléphone en mode « Écouter » vers ce haut-parleur.',
+  stNothing:'Rien pour l’instant. <span>Choisis ci-dessous « Écouter », « Deux touches » ou « Clé ». Les cases se remplissent de gauche à droite : 1–6 pour les coordonnées, 7–10 pour le code du clavier.</span>',
+  stLining:{one:'Alignement… <span>{n} chiffre entendu en cours d’émission (voir la liste ci-dessous). Les cases se remplissent dès que la pause avant le chiffre 1 est entendue.</span>',
+            other:'Alignement… <span>{n} chiffres entendus en cours d’émission (voir la liste ci-dessous). Les cases se remplissent dès que la pause avant le chiffre 1 est entendue.</span>'},
+  stConflict:{one:'{n} chiffre diffère entre les répétitions. <span>Continue d’écouter : un troisième passage tranchera.</span>',
+              other:'{n} chiffres diffèrent entre les répétitions. <span>Continue d’écouter : un troisième passage tranchera.</span>'},
+  stAllConf:'Les 10 chiffres sont confirmés par une répétition. <span>Prêt à l’emploi.</span>',
+  stAllHeard:{one:'Les 10 chiffres sont entendus, {n} confirmé. <span>Un passage de plus confirme le reste.</span>',
+              other:'Les 10 chiffres sont entendus, {n} confirmés. <span>Un passage de plus confirme le reste.</span>'},
+  stProgress:'{n} sur 10 entendus. <span>{start}</span>',
+  startListen:'Aligné sur la pause avant le chiffre 1.',
+  startMark:'Aligné sur ta marque « recommence ici ».',
+  startFirst:'Ton premier chiffre saisi est la case 1. Si tu as commencé en pleine émission, touche « L’émission recommence ici » quand elle se répète.',
+  symCommitted:'{code} → {d}', symNotDigit:'{code} n’est pas un chiffre, ignoré', symMore:'encore {n}',
+  removedSym:'Dernier symbole supprimé', removedMark:'Marque de reprise supprimée', removedSkip:'Groupe de symboles ignoré supprimé', removedDigit:'Chiffre {d} supprimé'
+},
+'pt-BR':{
+  language:'Idioma',
+  sub:'Badlands · Morse → coordenadas + teclado',
+  gridLabel:'Coordenadas · dígitos 1–6', codeLabel:'Código do teclado · dígitos 7–10',
+  copy:'Copiar', copied:'Copiado', selected:'Selecionado',
+  lgEmpty:'ainda não ouvido', lgOnce:'ouvido uma vez', lgConf:'confirmado por repetição', lgBad:'repetições divergem', lgTimes:'×2 = vezes ouvido',
+  tabListen:'Ouvir', tabTwo:'Duas teclas', tabPaddle:'Chave',
+  listen:'Ouvir', stop:'Parar',
+  noLock:'Sem tom detectado', locked:'Tom em {f} Hz', wpm:'~{n} PPM',
+  heardLabel:'Tudo o que foi ouvido, em ordem',
+  listenIntro:'Segure o celular perto do alto-falante enquanto o rádio toca. O app trava no tom, encontra a pausa entre as transmissões e alinha os dígitos a partir dela. Deixe o app ouvir duas transmissões completas para confirmar cada dígito.',
+  micBlocked:'O microfone está bloqueado. Permita o acesso ao microfone para este site nas configurações do navegador e toque em “Ouvir” de novo. “Duas teclas” e “Chave” funcionam sem ele.',
+  listening:'Ouvindo. Nada é gravado nem enviado.',
+  twoHint:'Cada dígito tem 5 símbolos. Ele é registrado no 5º.',
+  short:'Curto', long:'Longo', dotKeyHint:'← ou tecla .', dashKeyHint:'→ ou tecla -',
+  undo:'Desfazer', mark:'A transmissão recomeça aqui', keyedLabel:'Digitado até agora',
+  padHint:'Toque = curto · segurar = longo. Registra no 5º símbolo.',
+  key:'Chave', spaceHint:'No computador, a barra de espaço funciona',
+  clear:'Limpar tudo',
+  diag:'Diagnóstico', diagNote:'Estes testes rodam à parte e nunca mexem na sua leitura.',
+  selfTest:'Rodar autoteste do decodificador', play:'Tocar transmissão de teste', stopPlay:'Parar transmissão de teste',
+  pass:'Passou', fail:'Falhou',
+  selfTestResult:'{r}: uma transmissão sintética de {d} a {f} Hz foi decodificada como {o} em {ms} ms.',
+  playing:'Tocando {d} duas vezes a 600 Hz. Aponte outro celular no modo “Ouvir” para este alto-falante.',
+  stNothing:'Nada ainda. <span>Escolha abaixo “Ouvir”, “Duas teclas” ou “Chave”. Os campos se preenchem da esquerda para a direita: 1–6 são as coordenadas, 7–10 o código do teclado.</span>',
+  stLining:{one:'Alinhando… <span>{n} dígito ouvido no meio da transmissão (veja a lista abaixo). Os campos se preenchem quando a pausa antes do dígito 1 for ouvida.</span>',
+            other:'Alinhando… <span>{n} dígitos ouvidos no meio da transmissão (veja a lista abaixo). Os campos se preenchem quando a pausa antes do dígito 1 for ouvida.</span>'},
+  stConflict:{one:'{n} dígito diverge entre as repetições. <span>Continue ouvindo: uma terceira passada resolve.</span>',
+              other:'{n} dígitos divergem entre as repetições. <span>Continue ouvindo: uma terceira passada resolve.</span>'},
+  stAllConf:'Todos os 10 dígitos confirmados por repetição. <span>Pode usar.</span>',
+  stAllHeard:{one:'Todos os 10 dígitos ouvidos, {n} confirmado. <span>Mais uma passada confirma o resto.</span>',
+              other:'Todos os 10 dígitos ouvidos, {n} confirmados. <span>Mais uma passada confirma o resto.</span>'},
+  stProgress:'{n} de 10 ouvidos. <span>{start}</span>',
+  startListen:'Alinhado pela pausa antes do dígito 1.',
+  startMark:'Alinhado pela sua marca “recomeça aqui”.',
+  startFirst:'Seu primeiro dígito digitado é o campo 1. Se você começou no meio da transmissão, toque em “A transmissão recomeça aqui” quando ela se repetir.',
+  symCommitted:'{code} → {d}', symNotDigit:'{code} não é um dígito, ignorado', symMore:'faltam {n}',
+  removedSym:'Último símbolo removido', removedMark:'Marca de recomeço removida', removedSkip:'Grupo de símbolos ignorado removido', removedDigit:'Dígito {d} removido'
+}
+};
+
+// Pick the language: ?lang= link, then the viewer's saved choice, then the phone/browser language, then English.
+function matchLang(code){
+  if(!code) return null;
+  const c = String(code).toLowerCase(), base = c.split('-')[0];
+  const exact = LANGS.find(([k])=>k.toLowerCase()===c);
+  if(exact) return exact[0];
+  const near = LANGS.find(([k])=>k.toLowerCase().split('-')[0]===base);
+  return near ? near[0] : null;
+}
+function pickLang(){
+  try{ const q = matchLang(new URLSearchParams(location.search).get('lang')); if(q) return q; }catch{}
+  try{ const s = matchLang(localStorage.getItem('bd-lang')); if(s) return s; }catch{}
+  for(const l of (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language])){ const m = matchLang(l); if(m) return m; }
+  return 'en';
+}
+let LANG = typeof window!=='undefined' ? pickLang() : 'en';
+function t(key, a={}){
+  let s = (STR[LANG] && STR[LANG][key]) ?? STR.en[key] ?? key;
+  if(typeof s==='object'){ let cat='other'; try{ cat = new Intl.PluralRules(LANG).select(a.n); }catch{} s = s[cat] ?? s.other; }
+  return s.replace(/\{(\w+)\}/g, (m,k)=> a[k] ?? m);
+}
+</script>
+<script>
 (() => {
 const $ = id => document.getElementById(id);
 const all = sel => document.querySelectorAll(sel);
@@ -391,6 +686,9 @@ const TEST_DIGITS = '0770581234';
 const DIGITS = {'-----':'0','.----':'1','..---':'2','...--':'3','....-':'4','.....':'5','-....':'6','--...':'7','---..':'8','----.':'9'};
 
 let asm = new MessageAssembler();
+// Elements whose text depends on state re-render through here when the language changes.
+const live = new Map();
+function setLive(el, fn){ live.set(el, fn); fn(); }
 let source = null;           // null | 'listen' | 'keyed'
 let keyedRaw = '';
 
@@ -414,15 +712,15 @@ function render(){
   const conf = r.cells.filter(c=>c.state==='confirmed').length;
   const got = r.cells.filter(c=>c.d).length;
   let cls='', msg='';
-  if(!source){ msg = 'Nothing yet. <span>Pick Listen, Two-key or Paddle below. Slots fill left to right: 1–6 are the grid, 7–10 the keypad code.</span>'; }
-  else if(waiting){ cls='wait'; msg = `Lining up… <span>Heard ${asm.digits.length} digit${asm.digits.length===1?'':'s'} mid-broadcast (see the list below). Slots fill once the pause before digit 1 is heard.</span>`; }
-  else if(bad){ cls='bad'; msg = `${bad} digit${bad>1?'s':''} disagree between repeats. <span>Keep listening; a third pass settles it.</span>`; }
-  else if(conf===10){ cls='ok'; msg = 'All 10 digits confirmed by a repeat. <span>Safe to use.</span>'; }
-  else if(got===10){ cls='ok'; msg = `All 10 digits heard, ${conf} confirmed. <span>One more pass confirms the rest.</span>`; }
+  if(!source){ msg = t('stNothing'); }
+  else if(waiting){ cls='wait'; msg = t('stLining', {n:asm.digits.length}); }
+  else if(bad){ cls='bad'; msg = t('stConflict', {n:bad}); }
+  else if(conf===10){ cls='ok'; msg = t('stAllConf'); }
+  else if(got===10){ cls='ok'; msg = t('stAllHeard', {n:conf}); }
   else {
     cls='wait';
-    const startTxt = source==='listen' ? 'Lined up on the pause before digit 1.' : (asm.hasStart() ? 'Lined up on your “restarts here” mark.' : 'Your first keyed digit is slot 1. If you started mid-broadcast, tap “Broadcast restarts here” when it repeats.');
-    msg = `${got} of 10 heard. <span>${startTxt}</span>`;
+    const startTxt = t(source==='listen' ? 'startListen' : (asm.hasStart() ? 'startMark' : 'startFirst'));
+    msg = t('stProgress', {n:got, start:startTxt});
   }
   box.className = 'align '+cls; txt.innerHTML = msg;
 }
@@ -437,9 +735,9 @@ function clearAll(){
 $('clearBtn').onclick = clearAll;
 
 async function copyText(btn, text){
-  const done = t => { btn.classList.add('done'); btn.textContent=t; setTimeout(()=>{btn.classList.remove('done'); btn.textContent='Copy';},1400); };
-  try { await navigator.clipboard.writeText(text); done('Copied'); }
-  catch { const el = btn.previousElementSibling.querySelector('.slots'); const rg=document.createRange(); rg.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); done('Selected'); }
+  const done = t => { btn.classList.add('done'); btn.textContent=t; setTimeout(()=>{btn.classList.remove('done'); btn.textContent=t('copy');},1400); };
+  try { await navigator.clipboard.writeText(text); done(t('copied')); }
+  catch { const el = btn.previousElementSibling.querySelector('.slots'); const rg=document.createRange(); rg.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); done(t('selected')); }
 }
 const digitsNow = () => cells().r.cells.map(x=>x.d).join('');
 $('copyGrid').onclick = () => { const c=digitsNow(); copyText($('copyGrid'), c.slice(0,3)+' '+c.slice(3,6)); };
@@ -476,19 +774,18 @@ function addKeyedChar(code){
   return c;
 }
 function showRaw(){ all('[data-raw]').forEach(e=>e.textContent = keyedRaw || ' '); }
-function showSym(el, syms, hint){ el.innerHTML = (syms.length ? syms.join(' ') : '&nbsp;') + `<small>${hint}</small>`; }
+function showSym(el, syms, key, args){ setLive(el, () => { el.innerHTML = (syms.length ? syms.join(' ') : '&nbsp;') + `<small>${t(key, args)}</small>`; }); }
 
 // Two-key: left = short, right = long
 let twoSyms=[];
-const TWO_HINT='Each digit is 5 symbols. It commits on the 5th.';
 function twoPress(s){
   startKeyed(); tone(true, s==='.'?90:270);
   twoSyms.push(s);
   if(twoSyms.length===5){
     const code=twoSyms.join(''); twoSyms=[];
     const c = addKeyedChar(code);
-    showSym($('symTwo'), [], c ? `${code} → ${c}` : `${code} is not a digit, skipped`);
-  } else showSym($('symTwo'), twoSyms.map(x=>x==='.'?'·':'–'), `${5-twoSyms.length} more`);
+    showSym($('symTwo'), [], c ? 'symCommitted' : 'symNotDigit', {code, d:c});
+  } else showSym($('symTwo'), twoSyms.map(x=>x==='.'?'·':'–'), 'symMore', {n:5-twoSyms.length});
 }
 function flash(el){ el.classList.add('down'); setTimeout(()=>el.classList.remove('down'),120); }
 $('dotKey').addEventListener('pointerdown', e=>{ e.preventDefault(); flash($('dotKey')); twoPress('.'); });
@@ -497,12 +794,11 @@ $('dashKey').addEventListener('pointerdown', e=>{ e.preventDefault(); flash($('d
 
 // Paddle: timed key, shared decoder
 let pdec=null, pTimer=0, padDown=false;
-const PAD_HINT='Tap = short · hold = long. Commits on the 5th symbol.';
 function ensurePdec(){
   if(pdec) return;
   pdec = new MorseDecoder({mode:'touch', onChar:(c,code)=>{
     const d = addKeyedChar(code);
-    showSym($('symPad'), [], d ? `${code} → ${d}` : `${code} is not a digit, skipped`);
+    showSym($('symPad'), [], d ? 'symCommitted' : 'symNotDigit', {code, d});
   }});
 }
 function padDownFn(){
@@ -513,7 +809,7 @@ function padDownFn(){
 function padUpFn(){
   if(!padDown) return; padDown=false;
   pdec.toneEnd(performance.now()); $('paddle').classList.remove('down'); tone(false);
-  if(pdec.pending.length) showSym($('symPad'), pdec.pending.map(d=>d>pdec.est.split?'–':'·'), `${5-pdec.pending.length} more`);
+  if(pdec.pending.length) showSym($('symPad'), pdec.pending.map(d=>d>pdec.est.split?'–':'·'), 'symMore', {n:5-pdec.pending.length});
   clearInterval(pTimer); pTimer = setInterval(()=>{ pdec.tick(performance.now()); if(!pdec.pending.length) clearInterval(pTimer); }, 40);
 }
 const pad=$('paddle');
@@ -523,13 +819,13 @@ pad.addEventListener('pointercancel', padUpFn);
 
 function resetKeys(){
   twoSyms=[]; if(pdec){ pdec.pending=[]; } clearInterval(pTimer);
-  showSym($('symTwo'), [], TWO_HINT); showSym($('symPad'), [], PAD_HINT);
+  showSym($('symTwo'), [], 'twoHint'); showSym($('symPad'), [], 'padHint');
 }
 
 // Undo: first drops unfinished symbols, then the last digit
 function undo(){
-  if(pane==='twokey' && twoSyms.length){ twoSyms.pop(); showSym($('symTwo'), twoSyms.map(x=>x==='.'?'·':'–'), twoSyms.length?`${5-twoSyms.length} more`:'Removed last symbol'); return; }
-  if(pane==='paddle' && pdec && pdec.pending.length){ pdec.pending.pop(); showSym($('symPad'), pdec.pending.map(d=>d>pdec.est.split?'–':'·'), pdec.pending.length?`${5-pdec.pending.length} more`:'Removed last symbol'); return; }
+  if(pane==='twokey' && twoSyms.length){ twoSyms.pop(); showSym($('symTwo'), twoSyms.map(x=>x==='.'?'·':'–'), twoSyms.length?'symMore':'removedSym', {n:5-twoSyms.length}); return; }
+  if(pane==='paddle' && pdec && pdec.pending.length){ pdec.pending.pop(); showSym($('symPad'), pdec.pending.map(d=>d>pdec.est.split?'–':'·'), pdec.pending.length?'symMore':'removedSym', {n:5-pdec.pending.length}); return; }
   if(source!=='keyed' || !keyedRaw) return;
   const last = keyedRaw.slice(-1);
   keyedRaw = keyedRaw.slice(0,-1);
@@ -537,7 +833,7 @@ function undo(){
   else if(last!=='?') asm.removeLast();
   showRaw(); render();
   const el = pane==='paddle' ? $('symPad') : $('symTwo');
-  showSym(el, [], last==='|' ? 'Removed the restart mark' : `Removed ${last==='?'?'skipped symbol group':'digit '+last}`);
+  showSym(el, [], last==='|' ? 'removedMark' : (last==='?' ? 'removedSkip' : 'removedDigit'), {d:last});
 }
 all('[data-undo]').forEach(b=>b.onclick=undo);
 
@@ -552,7 +848,7 @@ all('[data-mark]').forEach(b=>b.onclick=mark);
 
 // Keyboard
 window.addEventListener('keydown', e=>{
-  if(e.target.closest && e.target.closest('summary')) return;
+  if(e.target.closest && e.target.closest('summary, select')) return;
   if(pane==='twokey'){
     if(['ArrowLeft','Period','NumpadDecimal'].includes(e.code)){ e.preventDefault(); flash($('dotKey')); twoPress('.'); }
     else if(['ArrowRight','Minus','NumpadSubtract'].includes(e.code)){ e.preventDefault(); flash($('dashKey')); twoPress('-'); }
@@ -563,24 +859,25 @@ window.addEventListener('keydown', e=>{
 window.addEventListener('keyup', e=>{ if(pane==='paddle' && e.code==='Space'){ e.preventDefault(); padUpFn(); } });
 
 // ---------- Listen (live mic) ----------
-let ctx=null, stream=null, proc=null, det=null, wake=null, liveRaw='', levelNow=0, toneNow=false, raf=0;
+let ctx=null, stream=null, proc=null, det=null, wake=null, liveRaw='', levelNow=0, toneNow=false, raf=0, lockFreq=null, noteKey='listenIntro';
+function showNote(key){ noteKey=key; $('listenNote').className = key==='micBlocked' ? 'note err' : 'note'; setLive($('listenNote'), ()=>{ $('listenNote').textContent = t(noteKey); }); }
+function showLock(f){ lockFreq=f; const p=$('lockPill'); p.className = f ? 'pill ok' : 'pill'; setLive(p, ()=>{ p.textContent = lockFreq ? t('locked',{f:lockFreq}) : t('noLock'); }); }
+function showListenBtn(){ setLive($('listenBtn'), ()=>{ $('listenBtn').textContent = t(stream ? 'stop' : 'listen'); }); $('listenBtn').classList.toggle('live', !!stream); }
 async function startListen(){
-  const note = $('listenNote');
   try{
     stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1}});
   }catch(e){
-    stream=null; note.className='note err';
-    note.textContent = 'Microphone is blocked here. Open the hosted copy of this page to listen live. Two-key and Paddle work anywhere.';
+    stream=null; showNote('micBlocked');
     return;
   }
-  note.className='note'; note.textContent='Listening. Nothing is recorded or sent anywhere.';
+  showNote('listening');
   ctx = new (window.AudioContext||window.webkitAudioContext)(); await ctx.resume();
   asm = new MessageAssembler(); source='listen'; liveRaw=''; keyedRaw=''; showRaw(); resetKeys(); render();
   const dec = new MorseDecoder({mode:'audio',
     onChar:c=>{ asm.addChar(c); liveRaw += c||'?'; $('rawListen').textContent=liveRaw.slice(-60); render(); },
     onBoundary:g=>{ asm.addBoundary(g); liveRaw += ' | '; $('rawListen').textContent=liveRaw.slice(-60); render(); }});
   det = new ToneDetector(ctx.sampleRate, dec, {
-    onLock:f=>{ const p=$('lockPill'); p.textContent=`Locked ${f} Hz`; p.className='pill ok'; },
+    onLock:f=>showLock(f),
     onLevel:(lv,on)=>{ levelNow=lv; toneNow=on; }
   });
   const src = ctx.createMediaStreamSource(stream);
@@ -588,22 +885,22 @@ async function startListen(){
   proc.onaudioprocess = e => det && det.push(e.inputBuffer.getChannelData(0).slice());
   const mute = ctx.createGain(); mute.gain.value=0;
   src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
-  $('listenBtn').textContent='Stop'; $('listenBtn').classList.add('live');
+  showListenBtn();
   try{ wake = await navigator.wakeLock?.request('screen'); }catch{}
   meterLoop();
 }
 function meterLoop(){
   $('meter').querySelector('i').style.width = (levelNow*100).toFixed(0)+'%';
   $('meter').classList.toggle('on', toneNow);
-  if(det && det.dec.durs.length>3) $('wpmText').textContent = `~${Math.round(1200/det.dec.est.dot)} WPM`;
+  if(det && det.dec.durs.length>3) $('wpmText').textContent = t('wpm', {n:Math.round(1200/det.dec.est.dot)});
   if(stream) raf = requestAnimationFrame(meterLoop);
 }
 function stopListen(){
   proc?.disconnect(); stream?.getTracks().forEach(t=>t.stop()); ctx?.close();
   stream=null; proc=null; ctx=null; det=null; cancelAnimationFrame(raf);
   try{ wake?.release(); }catch{} wake=null;
-  $('listenBtn').textContent='Listen'; $('listenBtn').classList.remove('live');
-  $('meter').querySelector('i').style.width='0'; $('lockPill').textContent='No pitch lock'; $('lockPill').className='pill'; $('wpmText').textContent='';
+  showListenBtn();
+  $('meter').querySelector('i').style.width='0'; showLock(null); $('wpmText').textContent='';
 }
 $('listenBtn').onclick = () => stream ? stopListen() : startListen();
 
@@ -612,21 +909,35 @@ $('selfTestBtn').onclick = () => {
   const sr=48000, sig = synthMorse(TEST_DIGITS, {sr, freq:600, wpm:20, noise:0.08, repeats:2});
   const t0=performance.now(); const res = decodeBuffer(sig, sr); const ms = performance.now()-t0;
   const out = res.asm.result(true).cells.map(c=>c.d??'_').join('');
-  $('testNote').textContent = `${out===TEST_DIGITS?'Pass':'Fail'}: a synthetic ${res.freq} Hz broadcast of ${TEST_DIGITS} decoded as ${out} in ${ms.toFixed(0)} ms.`;
+  setLive($('testNote'), ()=>{ $('testNote').textContent = t('selfTestResult', {r:t(out===TEST_DIGITS?'pass':'fail'), f:res.freq, d:TEST_DIGITS, o:out, ms:ms.toFixed(0)}); });
 };
 let playing=null;
+function showPlayBtn(){ setLive($('playBtn'), ()=>{ $('playBtn').textContent = t(playing ? 'stopPlay' : 'play'); }); }
 $('playBtn').onclick = () => {
   if(playing){ try{playing.stop();}catch{} return; }
   const ac = new (window.AudioContext||window.webkitAudioContext)();
   const sig = synthMorse(TEST_DIGITS, {sr:ac.sampleRate, noise:0, repeats:2});
   const b = ac.createBuffer(1, sig.length, ac.sampleRate); b.copyToChannel(sig,0);
   const s = ac.createBufferSource(); s.buffer=b; s.connect(ac.destination); s.start();
-  playing=s; $('playBtn').textContent='Stop test broadcast';
-  $('testNote').textContent = `Playing ${TEST_DIGITS} twice at 600 Hz. Point another phone running Listen at this speaker.`;
-  s.onended=()=>{ playing=null; $('playBtn').textContent='Play test broadcast'; ac.close(); };
+  playing=s; showPlayBtn();
+  setLive($('testNote'), ()=>{ $('testNote').textContent = t('playing', {d:TEST_DIGITS}); });
+  s.onended=()=>{ playing=null; showPlayBtn(); ac.close(); };
 };
 
-resetKeys(); render();
+// ---------- language ----------
+function applyLang(){
+  document.documentElement.lang = LANG;
+  all('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $('langSel').setAttribute('aria-label', t('language'));
+  $('langSel').value = LANG;
+  live.forEach(fn => fn());
+  render();
+}
+$('langSel').innerHTML = LANGS.map(([k,name]) => `<option value="${k}">${name}</option>`).join('');
+$('langSel').onchange = e => { LANG = e.target.value; try{ localStorage.setItem('bd-lang', LANG); }catch{} applyLang(); };
+
+showNote('listenIntro'); showLock(null); showListenBtn(); showPlayBtn();
+resetKeys(); applyLang();
 })();
 </script>
 </body>
