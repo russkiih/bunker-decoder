@@ -1,1 +1,18 @@
-{"projects":{"default":"bunker-decoder"}}
+{
+  "projects": {
+    "default": "bunker-decoder"
+  },
+  "targets": {
+    "bunker-decoder": {
+      "hosting": {
+        "app": [
+          "badlands-morse"
+        ],
+        "legacy": [
+          "bunker-decoder"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

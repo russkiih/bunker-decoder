@@ -1,12 +1,14 @@
-# Bunker Decoder
+# Badlands Morse
 
 Single-page web app that decodes a Morse-code radio broadcast into a six-digit grid reference and a four-digit keypad code. Three input modes: live microphone listening, a two-key (short/long) pad, and a timed paddle. Everything runs in the browser; nothing is recorded or sent anywhere.
 
-Live: https://bunker-decoder.web.app
+Live: https://badlands-morse.web.app
+
+The old address, https://bunker-decoder.web.app, forwards here and keeps any `utm_*` parameters.
 
 ## Languages
 
-English, Russian, German, Polish, Spanish, French and Brazilian Portuguese. The app opens in the phone's language and has a picker in the header. A link can force one with `?lang=`, for example `https://bunker-decoder.web.app/?lang=ru`. Translations live in the `STR` table in `public/index.html`.
+English, Russian, German, Polish, Spanish, French and Brazilian Portuguese. The app opens in the phone's language and has a picker in the header. A link can force one with `?lang=`, for example `https://badlands-morse.web.app/?lang=ru`. Translations live in the `STR` table in `public/index.html`.
 
 ## Credit
 
@@ -14,7 +16,7 @@ Built by geezlys. Twitch: [twitch.tv/geezlys](https://twitch.tv/geezlys)
 
 ## Analytics and launch
 
-Firebase Analytics (GA4) logs six events, each tagged with the first-touch Discord community from the link's `utm_campaign`. See [docs/launch-and-metrics.md](docs/launch-and-metrics.md) for the event list, the one-time console setup, the per-community launch links and the two-week review.
+Firebase Analytics (GA4) logs six events, only after the player taps Allow on the consent bar, each tagged with the first-touch Discord community from the link's `utm_campaign`. See [docs/launch-and-metrics.md](docs/launch-and-metrics.md) for the event list, the one-time console setup, the per-community launch links and the two-week review.
 
 ## Deploy
 
@@ -24,4 +26,4 @@ firebase login
 firebase deploy --only hosting
 ```
 
-`firebase.json` serves `public/` with `Permissions-Policy: microphone=(self)` (needed for the Listen mode) and `Cache-Control: no-cache`.
+`firebase.json` deploys two Hosting sites in the bunker-decoder project: `public/` to badlands-morse (the app) and `legacy/` to bunker-decoder (a forwarding page). The app site with `Permissions-Policy: microphone=(self)` (needed for the Listen mode) and `Cache-Control: no-cache`.

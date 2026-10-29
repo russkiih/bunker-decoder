@@ -1,4 +1,4 @@
-// Bunker Decoder analytics: Firebase Analytics (GA4) plus first-touch community tagging.
+// Badlands Morse analytics: Firebase Analytics (GA4) plus first-touch community tagging.
 // Loaded as an ES module. If the SDK is blocked or unsupported, every call becomes a no-op
 // and the decoder keeps working.
 
@@ -17,6 +17,12 @@ const firebaseConfig = {
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];
 const COMMUNITY_KEY = 'community';
+const CONSENT_KEY = 'bd-consent';   // 'granted' | 'denied' | missing (not asked yet)
+
+/** Analytics only loads after the player taps Allow on the consent bar. */
+export function consent() {
+  try { return localStorage.getItem(CONSENT_KEY); } catch { return null; }
+}
 
 /** Read the four UTM params from the current URL. */
 export function readUtm() {
@@ -55,6 +61,8 @@ export function initAnalytics() {
         import(SDK + 'firebase-analytics.js'),
       ]);
       if (!(await analyticsSdk.isSupported())) return null;
+      // Analytics only, no advertising signals.
+      analyticsSdk.setConsent({ analytics_storage: 'granted', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
       const app = appSdk.getApps()[0] || appSdk.initializeApp(firebaseConfig);
       return { analytics: analyticsSdk.getAnalytics(app), logEvent: analyticsSdk.logEvent };
     } catch {
@@ -64,11 +72,34 @@ export function initAnalytics() {
   return ready;
 }
 
+// Events from before the player answers the consent bar wait here; Allow sends them, No thanks drops them.
+let pending = [];
+
 /** Log one event with the three standard params: community, mode (audio|paddle), digits. */
 export async function track(name, { mode, digits }) {
   const params = { community: community(), mode, digits };
+  const c = consent();
+  if (c === 'denied') return;
+  if (c !== 'granted') { if (pending.length < 50) pending.push([name, params]); return; }
   const fb = await initAnalytics();
   if (fb) fb.logEvent(fb.analytics, name, params);
+}
+
+/** Called by the consent bar. Allow starts analytics and sends waiting events; No thanks stops it. */
+export async function applyConsent(choice) {
+  if (choice === 'granted') {
+    window['ga-disable-' + firebaseConfig.measurementId] = false;
+    const fb = await initAnalytics();
+    const waiting = pending; pending = [];
+    if (fb) for (const [name, params] of waiting) fb.logEvent(fb.analytics, name, params);
+  } else {
+    pending = [];
+    window['ga-disable-' + firebaseConfig.measurementId] = true;   // stops gtag if it already loaded
+    for (const c of document.cookie.split(';')) {
+      const n = c.split('=')[0].trim();
+      if (n.startsWith('_ga')) for (const d of ['', location.hostname, '.' + location.hostname]) document.cookie = `${n}=; Max-Age=0; path=/${d ? '; domain=' + d : ''}`;
+    }
+  }
 }
 
 export const logListenStarted = p => track('listen_started', p);
@@ -87,7 +118,8 @@ const EVENTS = {
 // Wire up the page: tag first touch, start analytics, then drain events queued before this loaded.
 if (typeof window !== 'undefined') {
   captureFirstTouch();
-  initAnalytics();
+  if (consent() === 'granted') initAnalytics();
+  window.bdConsent = applyConsent;
   const send = (name, p) => { const fn = EVENTS[name]; if (fn) fn(p); };
   const queued = window.bdQ || [];
   window.bdTrack = send;

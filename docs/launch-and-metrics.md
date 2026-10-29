@@ -1,6 +1,6 @@
 # Launch and metrics playbook
 
-How Bunker Decoder is wired for analytics, how to post it to the three Discords, and what to review after two weeks.
+How Badlands Morse is wired for analytics, how to post it to the three Discords, and what to review after two weeks.
 
 ## 1. One-time setup (manual, in consoles)
 
@@ -8,7 +8,7 @@ How Bunker Decoder is wired for analytics, how to post it to the three Discords,
 2. **Custom dimensions.** Done on Oct 29, 2026: `community`, `mode` and `digits` are registered as event-scoped custom dimensions in GA4, so explorations can break events down by them from that date on.
 3. **Optional: BigQuery export.** Firebase console → Project settings → Integrations → BigQuery → Link, with Google Analytics export on. Needed only for the SQL in section 5.
 4. **Credit.** Done: `CREDIT` in `public/index.html` is set to Twitch `geezlys`, shown in the footer and About dialog, and in the README. Add a `name` there if you want "Built by <name>" in the About line.
-5. **Check the Discord embed.** DM yourself `https://bunker-decoder.web.app/` in Discord before posting anywhere. You should see the title, description and the grid/code image. Discord caches embeds hard, so if you ever change the image, save it as `og-image-v3.png` and update the four `og:image` / `twitter:image` meta tags.
+5. **Check the Discord embed.** DM yourself `https://badlands-morse.web.app/` in Discord before posting anywhere. You should see the title, description and the grid/code image. Discord caches embeds hard, so if you ever change the image, save it as `og-image-v4.png` and update the four `og:image` / `twitter:image` meta tags.
 
 ## 2. Events
 
@@ -29,6 +29,8 @@ Every event carries the same three parameters.
 | `copy_grid` | The grid Copy button is tapped |
 | `copy_code` | The keypad Copy button is tapped |
 
+**Consent.** Analytics does not load until the player taps Allow on the consent bar. Events from before that choice wait in memory: Allow sends them, No thanks drops them. The footer's Privacy link reopens the bar so the choice can be changed. Advertising signals are always off. Expect GA4 numbers to cover only players who allowed, so compare communities by ratios (copies per decode, fails per success) rather than raw totals.
+
 First touch is stored in `localStorage` under `community` and is never overwritten by a later UTM link. A player who first arrived from KarmaKrew stays `karmakrew` even if they later click the DayOne post.
 
 ## 3. Discord rollout
@@ -36,9 +38,9 @@ First touch is stored in `localStorage` under `community` and is never overwritt
 One canonical URL, one UTM string per community:
 
 ```
-KarmaKrew  https://bunker-decoder.web.app/?utm_source=discord&utm_medium=community&utm_campaign=karmakrew&utm_content=launch
-DayZero    https://bunker-decoder.web.app/?utm_source=discord&utm_medium=community&utm_campaign=dayzero&utm_content=launch
-DayOne     https://bunker-decoder.web.app/?utm_source=discord&utm_medium=community&utm_campaign=dayone&utm_content=launch
+KarmaKrew  https://badlands-morse.web.app/?utm_source=discord&utm_medium=community&utm_campaign=karmakrew&utm_content=launch
+DayZero    https://badlands-morse.web.app/?utm_source=discord&utm_medium=community&utm_campaign=dayzero&utm_content=launch
+DayOne     https://badlands-morse.web.app/?utm_source=discord&utm_medium=community&utm_campaign=dayone&utm_content=launch
 ```
 
 Rules for each server:
@@ -62,7 +64,11 @@ The Twitch line is the only Twitch mention in the launch copy. Post a native cli
 - No live Twitch badge for launch: it would need a Cloud Function holding Twitch credentials, an app token cache and Helix polling.
 - No live-by-country counter or presence map. Country data stays in the private analytics dashboard. If a public aggregate is wanted later, add a cached "decodes today" counter through a Cloud Function with App Check, shown only once it passes 20.
 
-## 5. Two-week review
+## 5. Live view
+
+GA4 → Reports → Realtime shows active users, events and countries for the last 30 minutes, about a minute behind. The Google Analytics phone app shows the same Realtime view. Full reports and explorations fill in 24 to 48 hours later. There is deliberately no live counter on the page itself (see section 4).
+
+## 6. Two-week review
 
 Build three explorations in GA4 → Explore → Free form (or in Firebase Analytics → Events):
 

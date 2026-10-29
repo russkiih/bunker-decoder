@@ -4,27 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
-<title>Bunker Decoder</title>
+<title>Badlands Morse</title>
 <meta name="description" content="Decode the Badlands bunker Morse broadcast into the six-digit grid reference and four-digit keypad code. Listen with your phone or key it in.">
-<link rel="canonical" href="https://bunker-decoder.web.app/">
+<link rel="canonical" href="https://badlands-morse.web.app/">
 <meta name="theme-color" content="#eaa53c">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Bunker Decoder">
-<meta property="og:title" content="Bunker Decoder">
+<meta property="og:site_name" content="Badlands Morse">
+<meta property="og:title" content="Badlands Morse">
 <meta property="og:description" content="Decode the Badlands bunker Morse broadcast into the six-digit grid reference and four-digit keypad code. Listen with your phone or key it in.">
-<meta property="og:url" content="https://bunker-decoder.web.app/">
-<meta property="og:image" content="https://bunker-decoder.web.app/og-image-v2.png">
+<meta property="og:url" content="https://badlands-morse.web.app/">
+<meta property="og:image" content="https://badlands-morse.web.app/og-image-v3.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Bunker Decoder output: grid reference 037 058 and keypad code 1234">
+<meta property="og:image:alt" content="Badlands Morse output: grid reference 037 058 and keypad code 1234">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Bunker Decoder">
+<meta name="twitter:title" content="Badlands Morse">
 <meta name="twitter:description" content="Decode the Badlands bunker Morse broadcast into the six-digit grid reference and four-digit keypad code. Listen with your phone or key it in.">
-<meta name="twitter:image" content="https://bunker-decoder.web.app/og-image-v2.png">
+<meta name="twitter:image" content="https://badlands-morse.web.app/og-image-v3.png">
+<link rel="preload" href="fonts/big-shoulders-stencil-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Text:wght@700;800&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Oswald:wght@600;700&family=Roboto+Condensed:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Oswald:wght@600;700&family=Roboto+Condensed:wght@400;500;600&display=swap">
 <style>
+/* Self-hosted stencil font (SIL OFL 1.1, see fonts/OFL-BigShoulders.txt), preloaded so the heading has its real width on first paint. */
+@font-face{font-family:'Big Shoulders Stencil Text';font-style:normal;font-weight:700 800;font-display:block;src:url(fonts/big-shoulders-stencil-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Big Shoulders Stencil Text';font-style:normal;font-weight:700 800;font-display:block;src:url(fonts/big-shoulders-stencil-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF}
 /* Layout: one narrow field-radio column — readout first, input mode below, diagnostics last. Deliberate single dark look. */
 :root{
   --bg:#171a13; --panel:#20241a; --panel-2:#2a2f22; --line:#3a4030;
@@ -38,9 +42,11 @@
 html,body{background:var(--bg);color:var(--fg)}
 body{font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 .wrap{max-width:560px;margin:0 auto;padding-block:18px 40px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:18px}
-header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:12px}
-header .sub{grid-column:1 / -1}
-h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.9rem,9vw,2.4rem);letter-spacing:.04em;line-height:.9;margin:0;text-transform:uppercase}
+header{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px}
+header h1{flex:0 0 auto}
+header .lang{margin-left:auto;flex:0 0 auto}
+header .sub{flex:1 0 100%}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.7rem,9vw,2.4rem);letter-spacing:.04em;line-height:.9;margin:0;text-transform:uppercase}
 .sub{color:var(--muted);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}
 .label{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 
@@ -108,6 +114,10 @@ details.diag[open] summary{margin-bottom:12px}
 .foot{display:flex;gap:8px 18px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:12px;font-size:.85rem;color:var(--muted)}
 .foot a{color:var(--muted)}
 .linkbtn{font:inherit;color:var(--muted);background:none;border:0;padding:8px 0;text-decoration:underline;cursor:pointer}
+.consent{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel-2);border-top:1px solid var(--line);box-shadow:0 -8px 24px rgba(0,0,0,.45);padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.consent-in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.consent p{margin:0;font-size:.92rem;line-height:1.45}
+.consent .btn{flex:1 1 0}
 dialog.about{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:20px;width:min(440px,calc(100vw - 32px));box-sizing:border-box}
 dialog.about::backdrop{background:rgba(0,0,0,.6)}
 dialog.about h2{font:800 1.6rem var(--f-display);letter-spacing:.04em;text-transform:uppercase;margin:0 0 10px}
@@ -120,9 +130,9 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
 <body>
 <div class="wrap">
   <header>
-    <h1>Bunker<br>Decoder</h1>
+    <h1>Badlands<br>Morse</h1>
     <select class="lang" id="langSel" aria-label="Language"></select>
-    <div class="sub" data-i18n="sub">Badlands · Morse → grid + keypad</div>
+    <div class="sub" data-i18n="sub">Bunker radio → grid + keypad</div>
   </header>
 
   <section class="readout" aria-live="polite">
@@ -190,11 +200,18 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
   </details>
   <footer class="foot">
     <button class="linkbtn" id="aboutBtn" data-i18n="about">About</button>
+    <button class="linkbtn" id="privacyBtn" data-i18n="privacy">Privacy</button>
     <span id="twitchFoot"></span>
   </footer>
 </div>
+<div class="consent" id="consentBar" role="region" aria-labelledby="consentText" hidden>
+  <div class="consent-in">
+    <p id="consentText" data-i18n="consentText"></p>
+    <div class="btnrow"><button class="btn mark" id="consentYes" data-i18n="allow">Allow</button><button class="btn" id="consentNo" data-i18n="decline">No thanks</button></div>
+  </div>
+</div>
 <dialog class="about" id="aboutDlg">
-  <h2>Bunker Decoder</h2>
+  <h2>Badlands Morse</h2>
   <p data-i18n="aboutText"></p>
   <p id="aboutCredit" hidden></p>
   <div class="btnrow"><button class="btn" id="aboutClose" data-i18n="close">Close</button></div>
@@ -430,8 +447,8 @@ const LANGS = [['en','English'],['ru','Русский'],['de','Deutsch'],['pl','
 const STR = {
 en:{
   language:'Language',
-  about:'About', aboutText:'Turns the Morse radio broadcast from a Badlands bunker into its map grid and keypad code. Audio stays on your phone. Anonymous usage counts help improve the tool.', close:'Close', builtBy:'Built by {name}',
-  sub:'Badlands · Morse → grid + keypad',
+  about:'About', aboutText:'Turns the Morse radio broadcast from a Badlands bunker into its map grid and keypad code. Audio stays on your phone. Anonymous usage counts help improve the tool.', close:'Close', builtBy:'Built by {name}', consentText:'Can we count anonymous usage with Google Analytics to improve the tool? Audio never leaves your phone.', allow:'Allow', decline:'No thanks', privacy:'Privacy',
+  sub:'Bunker radio → grid + keypad',
   gridLabel:'Grid reference · digits 1–⁠6', codeLabel:'Keypad code · digits 7–⁠10',
   copy:'Copy', copied:'Copied', selected:'Selected',
   lgEmpty:'not heard yet', lgOnce:'heard once', lgConf:'confirmed by a repeat', lgBad:'repeats disagree', lgTimes:'×2 = times heard',
@@ -469,8 +486,8 @@ en:{
 },
 ru:{
   language:'Язык',
-  about:'О приложении', aboutText:'Превращает радиопередачу Морзе из бункера Badlands в координаты на карте и код панели. Звук остаётся на вашем телефоне. Анонимная статистика использования помогает улучшать приложение.', close:'Закрыть', builtBy:'Автор: {name}',
-  sub:'Badlands · Морзе → координаты + код',
+  about:'О приложении', aboutText:'Превращает радиопередачу Морзе из бункера Badlands в координаты на карте и код панели. Звук остаётся на вашем телефоне. Анонимная статистика использования помогает улучшать приложение.', close:'Закрыть', builtBy:'Автор: {name}', consentText:'Можно собирать анонимную статистику через Google Analytics, чтобы улучшать приложение? Звук никогда не покидает телефон.', allow:'Разрешить', decline:'Нет, спасибо', privacy:'Конфиденциальность',
+  sub:'Радио бункера → координаты + код',
   gridLabel:'Координаты на карте · цифры 1–⁠6', codeLabel:'Код панели · цифры 7–⁠10',
   copy:'Копировать', copied:'Скопировано', selected:'Выделено',
   lgEmpty:'ещё не услышано', lgOnce:'услышано один раз', lgConf:'подтверждено повтором', lgBad:'повторы расходятся', lgTimes:'×2 = сколько раз услышано',
@@ -506,8 +523,8 @@ ru:{
 },
 de:{
   language:'Sprache',
-  about:'Info', aboutText:'Wandelt die Morse-Funksendung eines Badlands-Bunkers in Kartenkoordinate und Tastenfeld-Code um. Der Ton bleibt auf deinem Handy. Anonyme Nutzungszahlen helfen, das Tool zu verbessern.', close:'Schließen', builtBy:'Erstellt von {name}',
-  sub:'Badlands · Morse → Koordinate + Code',
+  about:'Info', aboutText:'Wandelt die Morse-Funksendung eines Badlands-Bunkers in Kartenkoordinate und Tastenfeld-Code um. Der Ton bleibt auf deinem Handy. Anonyme Nutzungszahlen helfen, das Tool zu verbessern.', close:'Schließen', builtBy:'Erstellt von {name}', consentText:'Dürfen wir die Nutzung anonym mit Google Analytics zählen, um das Tool zu verbessern? Der Ton verlässt nie dein Handy.', allow:'Erlauben', decline:'Nein danke', privacy:'Datenschutz',
+  sub:'Bunkerfunk → Koordinate + Code',
   gridLabel:'Kartenkoordinate · Ziffern 1–⁠6', codeLabel:'Tastenfeld-Code · Ziffern 7–⁠10',
   copy:'Kopieren', copied:'Kopiert', selected:'Markiert',
   lgEmpty:'noch nicht gehört', lgOnce:'einmal gehört', lgConf:'durch Wiederholung bestätigt', lgBad:'Wiederholungen widersprechen sich', lgTimes:'×2 = wie oft gehört',
@@ -545,8 +562,8 @@ de:{
 },
 pl:{
   language:'Język',
-  about:'O aplikacji', aboutText:'Zamienia transmisję Morse’a z bunkra w Badlands na współrzędne i kod do klawiatury. Dźwięk zostaje na twoim telefonie. Anonimowe statystyki użycia pomagają ulepszać narzędzie.', close:'Zamknij', builtBy:'Autor: {name}',
-  sub:'Badlands · Morse → współrzędne + kod',
+  about:'O aplikacji', aboutText:'Zamienia transmisję Morse’a z bunkra w Badlands na współrzędne i kod do klawiatury. Dźwięk zostaje na twoim telefonie. Anonimowe statystyki użycia pomagają ulepszać narzędzie.', close:'Zamknij', builtBy:'Autor: {name}', consentText:'Czy możemy zbierać anonimowe statystyki przez Google Analytics, żeby ulepszać narzędzie? Dźwięk nigdy nie opuszcza telefonu.', allow:'Zezwól', decline:'Nie, dziękuję', privacy:'Prywatność',
+  sub:'Radio z bunkra → współrzędne + kod',
   gridLabel:'Współrzędne · cyfry 1–⁠6', codeLabel:'Kod do klawiatury · cyfry 7–⁠10',
   copy:'Kopiuj', copied:'Skopiowano', selected:'Zaznaczono',
   lgEmpty:'jeszcze nieusłyszane', lgOnce:'usłyszane raz', lgConf:'potwierdzone powtórzeniem', lgBad:'powtórzenia się różnią', lgTimes:'×2 = ile razy usłyszane',
@@ -582,8 +599,8 @@ pl:{
 },
 es:{
   language:'Idioma',
-  about:'Acerca de', aboutText:'Convierte la emisión de radio en Morse de un búnker de Badlands en las coordenadas del mapa y el código del teclado. El audio se queda en tu móvil. Las estadísticas de uso anónimas ayudan a mejorar la herramienta.', close:'Cerrar', builtBy:'Creado por {name}',
-  sub:'Badlands · Morse → coordenadas + teclado',
+  about:'Acerca de', aboutText:'Convierte la emisión de radio en Morse de un búnker de Badlands en las coordenadas del mapa y el código del teclado. El audio se queda en tu móvil. Las estadísticas de uso anónimas ayudan a mejorar la herramienta.', close:'Cerrar', builtBy:'Creado por {name}', consentText:'¿Podemos contar el uso de forma anónima con Google Analytics para mejorar la herramienta? El audio nunca sale de tu móvil.', allow:'Permitir', decline:'No, gracias', privacy:'Privacidad',
+  sub:'Radio del búnker → coordenadas + teclado',
   gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código del teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Seleccionado',
   lgEmpty:'aún no oído', lgOnce:'oído una vez', lgConf:'confirmado al repetirse', lgBad:'las repeticiones no coinciden', lgTimes:'×2 = veces oído',
@@ -622,8 +639,8 @@ es:{
 },
 fr:{
   language:'Langue',
-  about:'À propos', aboutText:'Transforme l’émission radio en Morse d’un bunker de Badlands en coordonnées et en code du clavier. Le son reste sur ton téléphone. Des statistiques d’utilisation anonymes aident à améliorer l’outil.', close:'Fermer', builtBy:'Créé par {name}',
-  sub:'Badlands · Morse → coordonnées + code',
+  about:'À propos', aboutText:'Transforme l’émission radio en Morse d’un bunker de Badlands en coordonnées et en code du clavier. Le son reste sur ton téléphone. Des statistiques d’utilisation anonymes aident à améliorer l’outil.', close:'Fermer', builtBy:'Créé par {name}', consentText:'Pouvons-nous mesurer l’utilisation de façon anonyme avec Google Analytics pour améliorer l’outil ? Le son ne quitte jamais ton téléphone.', allow:'Autoriser', decline:'Non merci', privacy:'Confidentialité',
+  sub:'Radio du bunker → coordonnées + code',
   gridLabel:'Coordonnées · chiffres 1–⁠6', codeLabel:'Code du clavier · chiffres 7–⁠10',
   copy:'Copier', copied:'Copié', selected:'Sélectionné',
   lgEmpty:'pas encore entendu', lgOnce:'entendu une fois', lgConf:'confirmé par une répétition', lgBad:'les répétitions divergent', lgTimes:'×2 = nombre d’écoutes',
@@ -662,8 +679,8 @@ fr:{
 },
 'pt-BR':{
   language:'Idioma',
-  about:'Sobre', aboutText:'Transforma a transmissão de rádio em Morse de um bunker de Badlands nas coordenadas do mapa e no código do teclado. O áudio fica no seu celular. Estatísticas de uso anônimas ajudam a melhorar a ferramenta.', close:'Fechar', builtBy:'Criado por {name}',
-  sub:'Badlands · Morse → coordenadas + teclado',
+  about:'Sobre', aboutText:'Transforma a transmissão de rádio em Morse de um bunker de Badlands nas coordenadas do mapa e no código do teclado. O áudio fica no seu celular. Estatísticas de uso anônimas ajudam a melhorar a ferramenta.', close:'Fechar', builtBy:'Criado por {name}', consentText:'Podemos contar o uso de forma anônima com o Google Analytics para melhorar a ferramenta? O áudio nunca sai do seu celular.', allow:'Permitir', decline:'Não, obrigado', privacy:'Privacidade',
+  sub:'Rádio do bunker → coordenadas + teclado',
   gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código do teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Selecionado',
   lgEmpty:'ainda não ouvido', lgOnce:'ouvido uma vez', lgConf:'confirmado por repetição', lgBad:'repetições divergem', lgTimes:'×2 = vezes ouvido',
@@ -1014,6 +1031,14 @@ setLive($('aboutCredit'), () => {
   if(CREDIT.name) el.append(t('builtBy', {name: CREDIT.name}));
   if(handle) el.append(CREDIT.name ? ' — Twitch: ' : 'Twitch: ', twitchLink());
 });
+// Consent: analytics stays off until the player taps Allow. The choice is stored on the device.
+function consentState(){ try{ return localStorage.getItem('bd-consent'); }catch{ return null; } }
+function setConsent(v){ try{ localStorage.setItem('bd-consent', v); }catch{} $('consentBar').hidden = true; if(window.bdConsent) window.bdConsent(v); }
+$('consentYes').onclick = () => setConsent('granted');
+$('consentNo').onclick = () => setConsent('denied');
+$('privacyBtn').onclick = () => { $('consentBar').hidden = false; $('consentYes').focus(); };
+if(!consentState()) $('consentBar').hidden = false;
+
 $('aboutBtn').onclick = () => { const d = $('aboutDlg'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); };
 $('aboutClose').onclick = () => { const d = $('aboutDlg'); if(d.close) d.close(); else d.removeAttribute('open'); };
 $('aboutDlg').addEventListener('click', e => { if(e.target === e.currentTarget) $('aboutClose').click(); });
