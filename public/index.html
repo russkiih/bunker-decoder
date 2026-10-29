@@ -732,7 +732,7 @@ const TEST_DIGITS = '0770581234';
 const DIGITS = {'-----':'0','.----':'1','..---':'2','...--':'3','....-':'4','.....':'5','-....':'6','--...':'7','---..':'8','----.':'9'};
 
 // Credit shown in the footer and About dialog. Leave twitch empty to hide the Twitch link.
-const CREDIT = { name: '', twitch: 'geezlys' };   // name is optional; it shows as "Built by <name>"
+const CREDIT = { name: 'geezlys', twitch: 'geezlys' };   // footer: "Built by <name>" linking to Twitch
 
 // Analytics: queue events until analytics.js loads; it drains window.bdQ and takes over.
 window.bdQ = window.bdQ || [];
@@ -999,8 +999,14 @@ $('langSel').onchange = e => { LANG = e.target.value; try{ localStorage.setItem(
 
 // About dialog and Twitch credit (reference link only, never an embed)
 const handle = CREDIT.twitch.replace(/^@/, '').trim();
-const twitchLink = () => { const a = document.createElement('a'); a.href = 'https://twitch.tv/' + encodeURIComponent(handle); a.rel = 'noopener'; a.target = '_blank'; a.textContent = 'twitch.tv/' + handle; return a; };
-if(handle){ $('twitchFoot').append('Twitch: ', twitchLink()); }
+const twitchLink = (label) => { const a = document.createElement('a'); a.href = 'https://twitch.tv/' + encodeURIComponent(handle); a.rel = 'noopener'; a.target = '_blank'; a.textContent = label || ('twitch.tv/' + handle); return a; };
+// Footer: "Built by <name>" in the current language, with the name linking to Twitch
+setLive($('twitchFoot'), () => {
+  const el = $('twitchFoot'); el.textContent = '';
+  const name = CREDIT.name || handle; if(!name) return;
+  const [before, after = ''] = t('builtBy', {name: '\u0000'}).split('\u0000');
+  el.append(before, handle ? twitchLink(name) : name, after);
+});
 setLive($('aboutCredit'), () => {
   const el = $('aboutCredit'); el.textContent = '';
   if(!CREDIT.name && !handle) { el.hidden = true; return; }
