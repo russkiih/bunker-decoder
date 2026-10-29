@@ -8,6 +8,10 @@ Live: https://bunker-decoder.web.app
 
 English, Russian, German, Polish, Spanish, French and Brazilian Portuguese. The app opens in the phone's language and has a picker in the header. A link can force one with `?lang=`, for example `https://bunker-decoder.web.app/?lang=ru`. Translations live in the `STR` table in `public/index.html`.
 
+## Analytics and launch
+
+Firebase Analytics (GA4) logs six events, each tagged with the first-touch Discord community from the link's `utm_campaign`. See [docs/launch-and-metrics.md](docs/launch-and-metrics.md) for the event list, the one-time console setup, the per-community launch links and the two-week review.
+
 ## Deploy
 
 ```

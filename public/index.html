@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>Bunker Decoder</title>
+<meta name="description" content="Decode the Badlands bunker Morse broadcast into the six-digit grid reference and four-digit keypad code. Listen with your phone or key it in.">
+<link rel="canonical" href="https://bunker-decoder.web.app/">
+<meta name="theme-color" content="#eaa53c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Bunker Decoder">
+<meta property="og:title" content="Bunker Decoder">
+<meta property="og:description" content="Decode the Badlands bunker Morse broadcast into the six-digit grid reference and four-digit keypad code. Listen with your phone or key it in.">
+<meta property="og:url" content="https://bunker-decoder.web.app/">
+<meta property="og:image" content="https://bunker-decoder.web.app/og-image-v2.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Bunker Decoder output: grid reference 037 058 and keypad code 1234">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Bunker Decoder">
+<meta name="twitter:description" content="Decode the Badlands bunker Morse broadcast into the six-digit grid reference and four-digit keypad code. Listen with your phone or key it in.">
+<meta name="twitter:image" content="https://bunker-decoder.web.app/og-image-v2.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Text:wght@700;800&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Oswald:wght@600;700&family=Roboto+Condensed:wght@400;500;600&display=swap">
 <style>
@@ -88,7 +105,15 @@ details.diag summary{cursor:pointer;color:var(--muted);font-size:.8rem;letter-sp
 details.diag[open] summary{margin-bottom:12px}
 .diagbody{display:flex;flex-direction:column;gap:10px}
 .lang{width:9.5rem;font:600 .85rem var(--f-body);background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:5px;padding:8px 10px;min-height:40px;cursor:pointer}
-button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.foot{display:flex;gap:8px 18px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:12px;font-size:.85rem;color:var(--muted)}
+.foot a{color:var(--muted)}
+.linkbtn{font:inherit;color:var(--muted);background:none;border:0;padding:8px 0;text-decoration:underline;cursor:pointer}
+dialog.about{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:20px;width:min(440px,calc(100vw - 32px));box-sizing:border-box}
+dialog.about::backdrop{background:rgba(0,0,0,.6)}
+dialog.about h2{font:800 1.6rem var(--f-display);letter-spacing:.04em;text-transform:uppercase;margin:0 0 10px}
+dialog.about p{margin:0 0 12px;line-height:1.5}
+dialog.about a{color:var(--amber)}
+button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visible,.linkbtn:focus-visible,.foot a:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.meter i{transition:none}}
 </style>
 </head>
@@ -163,7 +188,17 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
       <p class="note" id="testNote"></p>
     </div>
   </details>
+  <footer class="foot">
+    <button class="linkbtn" id="aboutBtn" data-i18n="about">About</button>
+    <span id="twitchFoot"></span>
+  </footer>
 </div>
+<dialog class="about" id="aboutDlg">
+  <h2>Bunker Decoder</h2>
+  <p data-i18n="aboutText"></p>
+  <p id="aboutCredit" hidden></p>
+  <div class="btnrow"><button class="btn" id="aboutClose" data-i18n="close">Close</button></div>
+</dialog>
 
 <script>
 // ===== Morse decoder core (shared by audio + paddle) =====
@@ -395,6 +430,7 @@ const LANGS = [['en','English'],['ru','Русский'],['de','Deutsch'],['pl','
 const STR = {
 en:{
   language:'Language',
+  about:'About', aboutText:'Turns the Morse radio broadcast from a Badlands bunker into its map grid and keypad code. Audio stays on your phone. Anonymous usage counts help improve the tool.', close:'Close', builtBy:'Built by {name}',
   sub:'Badlands · Morse → grid + keypad',
   gridLabel:'Grid reference · digits 1–⁠6', codeLabel:'Keypad code · digits 7–⁠10',
   copy:'Copy', copied:'Copied', selected:'Selected',
@@ -405,7 +441,7 @@ en:{
   heardLabel:'Everything heard, in order',
   listenIntro:'Hold the phone near your speaker while the radio plays. It locks onto the tone pitch, finds the pause between broadcasts, and lines the digits up from there. Let it hear two full broadcasts so every digit gets confirmed.',
   micBlocked:'Microphone is blocked. Allow microphone access for this site in your browser settings, then tap Listen again. Two-key and Paddle work without it.',
-  listening:'Listening. Nothing is recorded or sent anywhere.',
+  listening:'Listening. Audio stays on your phone and is never recorded.',
   twoHint:'Each digit is 5 symbols. It commits on the 5th.',
   short:'Short', long:'Long', dotKeyHint:'← or . key', dashKeyHint:'→ or - key',
   undo:'Undo', mark:'Broadcast restarts here', keyedLabel:'Keyed so far',
@@ -433,6 +469,7 @@ en:{
 },
 ru:{
   language:'Язык',
+  about:'О приложении', aboutText:'Превращает радиопередачу Морзе из бункера Badlands в координаты на карте и код панели. Звук остаётся на вашем телефоне. Анонимная статистика использования помогает улучшать приложение.', close:'Закрыть', builtBy:'Автор: {name}',
   sub:'Badlands · Морзе → координаты + код',
   gridLabel:'Координаты на карте · цифры 1–⁠6', codeLabel:'Код панели · цифры 7–⁠10',
   copy:'Копировать', copied:'Скопировано', selected:'Выделено',
@@ -443,7 +480,7 @@ ru:{
   heardLabel:'Всё услышанное по порядку',
   listenIntro:'Держите телефон рядом с динамиком, пока играет радио. Приложение ловит частоту тона, находит паузу между передачами и выравнивает цифры по ней. Дайте ему услышать две полные передачи, чтобы каждая цифра подтвердилась.',
   micBlocked:'Микрофон заблокирован. Разрешите этому сайту доступ к микрофону в настройках браузера и снова нажмите «Слушать». «Две кнопки» и «Ключ» работают и без него.',
-  listening:'Слушаю. Ничего не записывается и никуда не отправляется.',
+  listening:'Слушаю. Звук остаётся на телефоне и не записывается.',
   twoHint:'Каждая цифра — 5 символов. Ввод завершается на 5-м.',
   short:'Точка', long:'Тире', dotKeyHint:'← или клавиша .', dashKeyHint:'→ или клавиша -',
   undo:'Отменить', mark:'Передача началась заново', keyedLabel:'Введено',
@@ -469,6 +506,7 @@ ru:{
 },
 de:{
   language:'Sprache',
+  about:'Info', aboutText:'Wandelt die Morse-Funksendung eines Badlands-Bunkers in Kartenkoordinate und Tastenfeld-Code um. Der Ton bleibt auf deinem Handy. Anonyme Nutzungszahlen helfen, das Tool zu verbessern.', close:'Schließen', builtBy:'Erstellt von {name}',
   sub:'Badlands · Morse → Koordinate + Code',
   gridLabel:'Kartenkoordinate · Ziffern 1–⁠6', codeLabel:'Tastenfeld-Code · Ziffern 7–⁠10',
   copy:'Kopieren', copied:'Kopiert', selected:'Markiert',
@@ -479,7 +517,7 @@ de:{
   heardLabel:'Alles Gehörte, der Reihe nach',
   listenIntro:'Halte das Handy an deinen Lautsprecher, während das Funkgerät läuft. Die App erfasst die Tonhöhe, findet die Pause zwischen den Sendungen und richtet die Ziffern daran aus. Lass sie zwei komplette Sendungen hören, damit jede Ziffer bestätigt wird.',
   micBlocked:'Das Mikrofon ist blockiert. Erlaube dieser Seite in den Browser-Einstellungen den Mikrofonzugriff und tippe dann erneut auf „Hören“. „Zwei Tasten“ und „Taste“ funktionieren auch ohne.',
-  listening:'Hört zu. Nichts wird aufgenommen oder irgendwohin gesendet.',
+  listening:'Hört zu. Der Ton bleibt auf deinem Handy und wird nicht aufgenommen.',
   twoHint:'Jede Ziffer hat 5 Zeichen. Nach dem 5. wird sie übernommen.',
   short:'Kurz', long:'Lang', dotKeyHint:'← oder Taste .', dashKeyHint:'→ oder Taste -',
   undo:'Rückgängig', mark:'Sendung beginnt hier neu', keyedLabel:'Bisher eingegeben',
@@ -507,6 +545,7 @@ de:{
 },
 pl:{
   language:'Język',
+  about:'O aplikacji', aboutText:'Zamienia transmisję Morse’a z bunkra w Badlands na współrzędne i kod do klawiatury. Dźwięk zostaje na twoim telefonie. Anonimowe statystyki użycia pomagają ulepszać narzędzie.', close:'Zamknij', builtBy:'Autor: {name}',
   sub:'Badlands · Morse → współrzędne + kod',
   gridLabel:'Współrzędne · cyfry 1–⁠6', codeLabel:'Kod do klawiatury · cyfry 7–⁠10',
   copy:'Kopiuj', copied:'Skopiowano', selected:'Zaznaczono',
@@ -517,7 +556,7 @@ pl:{
   heardLabel:'Wszystko, co usłyszano, po kolei',
   listenIntro:'Trzymaj telefon przy głośniku, gdy gra radio. Aplikacja łapie wysokość tonu, znajduje przerwę między transmisjami i od niej układa cyfry. Pozwól jej usłyszeć dwie pełne transmisje, żeby każda cyfra została potwierdzona.',
   micBlocked:'Mikrofon jest zablokowany. Zezwól tej stronie na dostęp do mikrofonu w ustawieniach przeglądarki i ponownie naciśnij „Słuchaj”. „Dwa klawisze” i „Klucz” działają bez niego.',
-  listening:'Słucham. Nic nie jest nagrywane ani nigdzie wysyłane.',
+  listening:'Słucham. Dźwięk zostaje na telefonie i nie jest nagrywany.',
   twoHint:'Każda cyfra to 5 znaków. Zatwierdza się po piątym.',
   short:'Krótki', long:'Długi', dotKeyHint:'← lub klawisz .', dashKeyHint:'→ lub klawisz -',
   undo:'Cofnij', mark:'Transmisja zaczyna się od nowa', keyedLabel:'Wpisano do tej pory',
@@ -543,6 +582,7 @@ pl:{
 },
 es:{
   language:'Idioma',
+  about:'Acerca de', aboutText:'Convierte la emisión de radio en Morse de un búnker de Badlands en las coordenadas del mapa y el código del teclado. El audio se queda en tu móvil. Las estadísticas de uso anónimas ayudan a mejorar la herramienta.', close:'Cerrar', builtBy:'Creado por {name}',
   sub:'Badlands · Morse → coordenadas + teclado',
   gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código del teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Seleccionado',
@@ -553,7 +593,7 @@ es:{
   heardLabel:'Todo lo oído, en orden',
   listenIntro:'Acerca el móvil al altavoz mientras suena la radio. Fija el tono, encuentra la pausa entre emisiones y alinea los dígitos a partir de ahí. Deja que oiga dos emisiones completas para que cada dígito quede confirmado.',
   micBlocked:'El micrófono está bloqueado. Permite el acceso al micrófono para este sitio en los ajustes del navegador y vuelve a tocar «Escuchar». «Dos teclas» y «Pulsador» funcionan sin él.',
-  listening:'Escuchando. No se graba ni se envía nada.',
+  listening:'Escuchando. El audio se queda en tu móvil y no se graba.',
   twoHint:'Cada dígito son 5 símbolos. Se registra con el quinto.',
   short:'Corto', long:'Largo', dotKeyHint:'← o tecla .', dashKeyHint:'→ o tecla -',
   undo:'Deshacer', mark:'La emisión se reinicia aquí', keyedLabel:'Introducido hasta ahora',
@@ -582,6 +622,7 @@ es:{
 },
 fr:{
   language:'Langue',
+  about:'À propos', aboutText:'Transforme l’émission radio en Morse d’un bunker de Badlands en coordonnées et en code du clavier. Le son reste sur ton téléphone. Des statistiques d’utilisation anonymes aident à améliorer l’outil.', close:'Fermer', builtBy:'Créé par {name}',
   sub:'Badlands · Morse → coordonnées + code',
   gridLabel:'Coordonnées · chiffres 1–⁠6', codeLabel:'Code du clavier · chiffres 7–⁠10',
   copy:'Copier', copied:'Copié', selected:'Sélectionné',
@@ -592,7 +633,7 @@ fr:{
   heardLabel:'Tout ce qui a été entendu, dans l’ordre',
   listenIntro:'Approche le téléphone de ton haut-parleur pendant que la radio joue. L’appli se cale sur la tonalité, repère la pause entre les émissions et aligne les chiffres à partir de là. Laisse-la entendre deux émissions complètes pour confirmer chaque chiffre.',
   micBlocked:'Le micro est bloqué. Autorise l’accès au micro pour ce site dans les réglages du navigateur, puis touche à nouveau « Écouter ». « Deux touches » et « Clé » fonctionnent sans micro.',
-  listening:'Écoute en cours. Rien n’est enregistré ni envoyé.',
+  listening:'Écoute en cours. Le son reste sur ton téléphone et n’est pas enregistré.',
   twoHint:'Chaque chiffre fait 5 symboles. Il est validé au 5e.',
   short:'Court', long:'Long', dotKeyHint:'← ou touche .', dashKeyHint:'→ ou touche -',
   undo:'Annuler', mark:'L’émission recommence ici', keyedLabel:'Saisi jusqu’ici',
@@ -621,6 +662,7 @@ fr:{
 },
 'pt-BR':{
   language:'Idioma',
+  about:'Sobre', aboutText:'Transforma a transmissão de rádio em Morse de um bunker de Badlands nas coordenadas do mapa e no código do teclado. O áudio fica no seu celular. Estatísticas de uso anônimas ajudam a melhorar a ferramenta.', close:'Fechar', builtBy:'Criado por {name}',
   sub:'Badlands · Morse → coordenadas + teclado',
   gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código do teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Selecionado',
@@ -631,7 +673,7 @@ fr:{
   heardLabel:'Tudo o que foi ouvido, em ordem',
   listenIntro:'Segure o celular perto do alto-falante enquanto o rádio toca. O app trava no tom, encontra a pausa entre as transmissões e alinha os dígitos a partir dela. Deixe o app ouvir duas transmissões completas para confirmar cada dígito.',
   micBlocked:'O microfone está bloqueado. Permita o acesso ao microfone para este site nas configurações do navegador e toque em “Ouvir” de novo. “Duas teclas” e “Chave” funcionam sem ele.',
-  listening:'Ouvindo. Nada é gravado nem enviado.',
+  listening:'Ouvindo. O áudio fica no seu celular e não é gravado.',
   twoHint:'Cada dígito tem 5 símbolos. Ele é registrado no 5º.',
   short:'Curto', long:'Longo', dotKeyHint:'← ou tecla .', dashKeyHint:'→ ou tecla -',
   undo:'Desfazer', mark:'A transmissão recomeça aqui', keyedLabel:'Digitado até agora',
@@ -689,6 +731,17 @@ const all = sel => document.querySelectorAll(sel);
 const TEST_DIGITS = '0770581234';
 const DIGITS = {'-----':'0','.----':'1','..---':'2','...--':'3','....-':'4','.....':'5','-....':'6','--...':'7','---..':'8','----.':'9'};
 
+// Credit shown in the footer and About dialog. Leave twitch empty to hide the Twitch link.
+const CREDIT = { name: '', twitch: '' };   // e.g. { name: 'Jane', twitch: 'janeplays' }
+
+// Analytics: queue events until analytics.js loads; it drains window.bdQ and takes over.
+window.bdQ = window.bdQ || [];
+function track(name){
+  const p = { mode: source==='listen' ? 'audio' : 'paddle', digits: Math.min(10, asm.digits.length) };
+  if(window.bdTrack) window.bdTrack(name, p); else window.bdQ.push([name, p]);
+}
+function trackFail(){ asm._fails = (asm._fails||0) + 1; if(asm._fails <= 10) track('decode_fail'); }
+
 let asm = new MessageAssembler();
 // Elements whose text depends on state re-render through here when the language changes.
 const live = new Map();
@@ -709,6 +762,7 @@ function render(){
   const grp = (ax, cs) => `<span class="grp"><span class="ax">${ax}</span><span class="trip">${cs.map(slot).join('')}</span></span>`;
   $('gridOut').innerHTML = grp('X ↔', r.cells.slice(0,3)) + '<span class="gapx"></span>' + grp('Y ↕', r.cells.slice(3,6));
   $('codeOut').innerHTML = r.cells.slice(6,10).map(slot).join('');
+  if(source && !waiting && !asm._ok && r.cells.every(c=>c.d)){ asm._ok = true; track('decode_success'); }
   $('copyGrid').disabled = !r.cells.slice(0,6).every(c=>c.d);
   $('copyCode').disabled = !r.cells.slice(6).every(c=>c.d);
 
@@ -740,13 +794,13 @@ function clearAll(){
 $('clearBtn').onclick = clearAll;
 
 async function copyText(btn, text){
-  const done = t => { btn.classList.add('done'); btn.textContent=t; setTimeout(()=>{btn.classList.remove('done'); btn.textContent=t('copy');},1400); };
+  const done = label => { btn.classList.add('done'); btn.textContent=label; setTimeout(()=>{btn.classList.remove('done'); btn.textContent=t('copy');},1400); };
   try { await navigator.clipboard.writeText(text); done(t('copied')); }
   catch { const el = btn.previousElementSibling.querySelector('.slots'); const rg=document.createRange(); rg.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(rg); done(t('selected')); }
 }
 const digitsNow = () => cells().r.cells.map(x=>x.d).join('');
-$('copyGrid').onclick = () => { const c=digitsNow(); copyText($('copyGrid'), c.slice(0,3)+' '+c.slice(3,6)); };
-$('copyCode').onclick = () => copyText($('copyCode'), digitsNow().slice(6,10));
+$('copyGrid').onclick = () => { track('copy_grid'); const c=digitsNow(); copyText($('copyGrid'), c.slice(0,3)+' '+c.slice(3,6)); };
+$('copyCode').onclick = () => { track('copy_code'); copyText($('copyCode'), digitsNow().slice(6,10)); };
 
 // ---------- tabs ----------
 let pane='listen';
@@ -769,11 +823,12 @@ function tone(on, ms){
 // ---------- keyed input (shared by Two-key and Paddle) ----------
 function startKeyed(){
   if(source==='listen'){ if(stream) stopListen(); asm = new MessageAssembler(); $('rawListen').textContent=''; }
-  source='keyed';
+  if(source!=='keyed'){ source='keyed'; track('paddle_used'); }
 }
 function addKeyedChar(code){
   const c = DIGITS[code] || null;
   asm.addChar(c);
+  if(!c) trackFail();
   keyedRaw += c ? c : '?';
   showRaw(); render();
   return c;
@@ -878,8 +933,9 @@ async function startListen(){
   showNote('listening');
   ctx = new (window.AudioContext||window.webkitAudioContext)(); await ctx.resume();
   asm = new MessageAssembler(); source='listen'; liveRaw=''; keyedRaw=''; showRaw(); resetKeys(); render();
+  track('listen_started');
   const dec = new MorseDecoder({mode:'audio',
-    onChar:c=>{ asm.addChar(c); liveRaw += c||'?'; $('rawListen').textContent=liveRaw.slice(-60); render(); },
+    onChar:c=>{ asm.addChar(c); if(!c || !/\d/.test(c)) trackFail(); liveRaw += c||'?'; $('rawListen').textContent=liveRaw.slice(-60); render(); },
     onBoundary:g=>{ asm.addBoundary(g); liveRaw += ' | '; $('rawListen').textContent=liveRaw.slice(-60); render(); }});
   det = new ToneDetector(ctx.sampleRate, dec, {
     onLock:f=>showLock(f),
@@ -941,9 +997,25 @@ function applyLang(){
 $('langSel').innerHTML = LANGS.map(([k,name]) => `<option value="${k}">${name}</option>`).join('');
 $('langSel').onchange = e => { LANG = e.target.value; try{ localStorage.setItem('bd-lang', LANG); }catch{} applyLang(); };
 
+// About dialog and Twitch credit (reference link only, never an embed)
+const handle = CREDIT.twitch.replace(/^@/, '').trim();
+const twitchLink = () => { const a = document.createElement('a'); a.href = 'https://twitch.tv/' + encodeURIComponent(handle); a.rel = 'noopener'; a.target = '_blank'; a.textContent = 'twitch.tv/' + handle; return a; };
+if(handle){ $('twitchFoot').append('Twitch: ', twitchLink()); }
+setLive($('aboutCredit'), () => {
+  const el = $('aboutCredit'); el.textContent = '';
+  if(!CREDIT.name && !handle) { el.hidden = true; return; }
+  el.hidden = false;
+  if(CREDIT.name) el.append(t('builtBy', {name: CREDIT.name}));
+  if(handle) el.append(CREDIT.name ? ' — Twitch: ' : 'Twitch: ', twitchLink());
+});
+$('aboutBtn').onclick = () => { const d = $('aboutDlg'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); };
+$('aboutClose').onclick = () => { const d = $('aboutDlg'); if(d.close) d.close(); else d.removeAttribute('open'); };
+$('aboutDlg').addEventListener('click', e => { if(e.target === e.currentTarget) $('aboutClose').click(); });
+
 showNote('listenIntro'); showLock(null); showListenBtn(); showPlayBtn();
 resetKeys(); applyLang();
 })();
 </script>
+<script type="module" src="analytics.js"></script>
 </body>
 </html>
