@@ -5,12 +5,7 @@ How Bunker Decoder is wired for analytics, how to post it to the three Discords,
 ## 1. One-time setup (manual, in consoles)
 
 1. **Turn on Google Analytics.** Done: the project is linked to GA4 measurement ID `G-EPL6087MJ8`, which is set in `public/analytics.js`.
-2. **Register the three event parameters as custom dimensions.** GA4 → Admin → Custom definitions → Create custom dimension, scope *Event*:
-   - `community` (parameter `community`)
-   - `mode` (parameter `mode`)
-   - `digits` (parameter `digits`)
-
-   Without this step, explorations cannot break events down by community or mode. GA4 only collects custom dimension values from the moment they are registered, so do it before launch.
+2. **Custom dimensions.** Done on Oct 29, 2026: `community`, `mode` and `digits` are registered as event-scoped custom dimensions in GA4, so explorations can break events down by them from that date on.
 3. **Optional: BigQuery export.** Firebase console → Project settings → Integrations → BigQuery → Link, with Google Analytics export on. Needed only for the SQL in section 5.
 4. **Credit.** Done: `CREDIT` in `public/index.html` is set to Twitch `geezlys`, shown in the footer and About dialog, and in the README. Add a `name` there if you want "Built by <name>" in the About line.
 5. **Check the Discord embed.** DM yourself `https://bunker-decoder.web.app/` in Discord before posting anywhere. You should see the title, description and the grid/code image. Discord caches embeds hard, so if you ever change the image, save it as `og-image-v3.png` and update the four `og:image` / `twitter:image` meta tags.
