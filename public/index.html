@@ -21,9 +21,9 @@
 html,body{background:var(--bg);color:var(--fg)}
 body{font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 .wrap{max-width:560px;margin:0 auto;padding-block:18px 40px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:18px}
-header{display:grid;grid-template-columns:1fr auto;align-items:start;gap:12px}
+header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:12px}
 header .sub{grid-column:1 / -1}
-h1{font-family:var(--f-display);font-weight:800;font-size:2.4rem;letter-spacing:.04em;line-height:.9;margin:0;text-transform:uppercase}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.9rem,9vw,2.4rem);letter-spacing:.04em;line-height:.9;margin:0;text-transform:uppercase}
 .sub{color:var(--muted);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}
 .label{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 
@@ -33,6 +33,9 @@ h1{font-family:var(--f-display);font-weight:800;font-size:2.4rem;letter-spacing:
 .row > div{min-width:0}
 .slots{display:flex;gap:2px;align-items:flex-start;margin-top:4px}
 .slots .gapx{width:12px}
+.grp{display:flex;flex-direction:column;min-width:0}
+.grp .trip{display:flex;gap:2px;min-width:0}
+.ax{font:700 .72rem var(--f-mono);letter-spacing:.12em;color:var(--amber);text-align:center;border-bottom:1px solid var(--amber-dim);padding-bottom:3px;margin-bottom:2px;user-select:none;-webkit-user-select:none}
 .slot{display:flex;flex-direction:column;align-items:center;width:1.25em;font-size:clamp(2rem,10vw,3.1rem)}
 .slot b{font-family:var(--f-mono);font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
 .slot small{font:500 .62rem var(--f-mono);color:var(--muted);letter-spacing:0;line-height:1.4}
@@ -99,11 +102,11 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
 
   <section class="readout" aria-live="polite">
     <div class="row">
-      <div><div class="label" data-i18n="gridLabel">Grid reference · digits 1–6</div><div class="slots" id="gridOut"></div></div>
+      <div><div class="label" data-i18n="gridLabel">Grid reference · digits 1–⁠6</div><div class="slots" id="gridOut"></div></div>
       <button class="copy" id="copyGrid" data-i18n="copy" disabled>Copy</button>
     </div>
     <div class="row">
-      <div><div class="label" data-i18n="codeLabel">Keypad code · digits 7–10</div><div class="slots" id="codeOut"></div></div>
+      <div><div class="label" data-i18n="codeLabel">Keypad code · digits 7–⁠10</div><div class="slots" id="codeOut"></div></div>
       <button class="copy" id="copyCode" data-i18n="copy" disabled>Copy</button>
     </div>
     <div class="align" id="alignBox"><span class="dot"></span><p id="alignText"></p></div>
@@ -393,7 +396,7 @@ const STR = {
 en:{
   language:'Language',
   sub:'Badlands · Morse → grid + keypad',
-  gridLabel:'Grid reference · digits 1–6', codeLabel:'Keypad code · digits 7–10',
+  gridLabel:'Grid reference · digits 1–⁠6', codeLabel:'Keypad code · digits 7–⁠10',
   copy:'Copy', copied:'Copied', selected:'Selected',
   lgEmpty:'not heard yet', lgOnce:'heard once', lgConf:'confirmed by a repeat', lgBad:'repeats disagree', lgTimes:'×2 = times heard',
   tabListen:'Listen', tabTwo:'Two-key', tabPaddle:'Paddle',
@@ -414,7 +417,7 @@ en:{
   pass:'Pass', fail:'Fail',
   selfTestResult:'{r}: a synthetic {f} Hz broadcast of {d} decoded as {o} in {ms} ms.',
   playing:'Playing {d} twice at 600 Hz. Point another phone running Listen at this speaker.',
-  stNothing:'Nothing yet. <span>Pick Listen, Two-key or Paddle below. Slots fill left to right: 1–6 are the grid, 7–10 the keypad code.</span>',
+  stNothing:'Nothing yet. <span>Pick Listen, Two-key or Paddle below. Slots fill left to right: 1–⁠6 are the grid, 7–⁠10 the keypad code.</span>',
   stLining:{one:'Lining up… <span>Heard {n} digit mid-broadcast (see the list below). Slots fill once the pause before digit 1 is heard.</span>',
             other:'Lining up… <span>Heard {n} digits mid-broadcast (see the list below). Slots fill once the pause before digit 1 is heard.</span>'},
   stConflict:{one:'{n} digit disagrees between repeats. <span>Keep listening; a third pass settles it.</span>',
@@ -431,7 +434,7 @@ en:{
 ru:{
   language:'Язык',
   sub:'Badlands · Морзе → координаты + код',
-  gridLabel:'Координаты на карте · цифры 1–6', codeLabel:'Код панели · цифры 7–10',
+  gridLabel:'Координаты на карте · цифры 1–⁠6', codeLabel:'Код панели · цифры 7–⁠10',
   copy:'Копировать', copied:'Скопировано', selected:'Выделено',
   lgEmpty:'ещё не услышано', lgOnce:'услышано один раз', lgConf:'подтверждено повтором', lgBad:'повторы расходятся', lgTimes:'×2 = сколько раз услышано',
   tabListen:'Слушать', tabTwo:'Две кнопки', tabPaddle:'Ключ',
@@ -452,7 +455,7 @@ ru:{
   pass:'Успех', fail:'Ошибка',
   selfTestResult:'{r}: синтетическая передача {d} на {f} Гц расшифрована как {o} за {ms} мс.',
   playing:'Играет {d} дважды на 600 Гц. Направьте на этот динамик другой телефон в режиме «Слушать».',
-  stNothing:'Пока пусто. <span>Выберите ниже «Слушать», «Две кнопки» или «Ключ». Ячейки заполняются слева направо: 1–6 — координаты, 7–10 — код панели.</span>',
+  stNothing:'Пока пусто. <span>Выберите ниже «Слушать», «Две кнопки» или «Ключ». Ячейки заполняются слева направо: 1–⁠6 — координаты, 7–⁠10 — код панели.</span>',
   stLining:'Выравнивание… <span>Цифр услышано посреди передачи: {n} (список ниже). Ячейки заполнятся, когда прозвучит пауза перед цифрой 1.</span>',
   stConflict:'Повторы расходятся в цифрах: {n}. <span>Слушайте дальше: третий проход всё решит.</span>',
   stAllConf:'Все 10 цифр подтверждены повтором. <span>Можно использовать.</span>',
@@ -467,7 +470,7 @@ ru:{
 de:{
   language:'Sprache',
   sub:'Badlands · Morse → Koordinate + Code',
-  gridLabel:'Kartenkoordinate · Ziffern 1–6', codeLabel:'Tastenfeld-Code · Ziffern 7–10',
+  gridLabel:'Kartenkoordinate · Ziffern 1–⁠6', codeLabel:'Tastenfeld-Code · Ziffern 7–⁠10',
   copy:'Kopieren', copied:'Kopiert', selected:'Markiert',
   lgEmpty:'noch nicht gehört', lgOnce:'einmal gehört', lgConf:'durch Wiederholung bestätigt', lgBad:'Wiederholungen widersprechen sich', lgTimes:'×2 = wie oft gehört',
   tabListen:'Hören', tabTwo:'Zwei Tasten', tabPaddle:'Taste',
@@ -488,7 +491,7 @@ de:{
   pass:'Bestanden', fail:'Fehlgeschlagen',
   selfTestResult:'{r}: Eine synthetische {f}-Hz-Sendung von {d} wurde in {ms} ms als {o} dekodiert.',
   playing:'Spielt {d} zweimal bei 600 Hz. Richte ein zweites Handy mit „Hören“ auf diesen Lautsprecher.',
-  stNothing:'Noch nichts. <span>Wähle unten „Hören“, „Zwei Tasten“ oder „Taste“. Die Felder füllen sich von links nach rechts: 1–6 sind die Koordinate, 7–10 der Tastenfeld-Code.</span>',
+  stNothing:'Noch nichts. <span>Wähle unten „Hören“, „Zwei Tasten“ oder „Taste“. Die Felder füllen sich von links nach rechts: 1–⁠6 sind die Koordinate, 7–⁠10 der Tastenfeld-Code.</span>',
   stLining:{one:'Wird ausgerichtet… <span>{n} Ziffer mitten in der Sendung gehört (siehe Liste unten). Die Felder füllen sich, sobald die Pause vor Ziffer 1 gehört wurde.</span>',
             other:'Wird ausgerichtet… <span>{n} Ziffern mitten in der Sendung gehört (siehe Liste unten). Die Felder füllen sich, sobald die Pause vor Ziffer 1 gehört wurde.</span>'},
   stConflict:{one:'Bei {n} Ziffer widersprechen sich die Wiederholungen. <span>Weiter zuhören, ein dritter Durchgang entscheidet.</span>',
@@ -505,7 +508,7 @@ de:{
 pl:{
   language:'Język',
   sub:'Badlands · Morse → współrzędne + kod',
-  gridLabel:'Współrzędne · cyfry 1–6', codeLabel:'Kod do klawiatury · cyfry 7–10',
+  gridLabel:'Współrzędne · cyfry 1–⁠6', codeLabel:'Kod do klawiatury · cyfry 7–⁠10',
   copy:'Kopiuj', copied:'Skopiowano', selected:'Zaznaczono',
   lgEmpty:'jeszcze nieusłyszane', lgOnce:'usłyszane raz', lgConf:'potwierdzone powtórzeniem', lgBad:'powtórzenia się różnią', lgTimes:'×2 = ile razy usłyszane',
   tabListen:'Słuchaj', tabTwo:'Dwa klawisze', tabPaddle:'Klucz',
@@ -526,7 +529,7 @@ pl:{
   pass:'Zaliczony', fail:'Niezaliczony',
   selfTestResult:'{r}: syntetyczną transmisję {d} na {f} Hz odczytano jako {o} w {ms} ms.',
   playing:'Odtwarzam {d} dwa razy na 600 Hz. Skieruj na ten głośnik drugi telefon w trybie „Słuchaj”.',
-  stNothing:'Jeszcze nic. <span>Wybierz poniżej „Słuchaj”, „Dwa klawisze” lub „Klucz”. Pola wypełniają się od lewej: 1–6 to współrzędne, 7–10 to kod do klawiatury.</span>',
+  stNothing:'Jeszcze nic. <span>Wybierz poniżej „Słuchaj”, „Dwa klawisze” lub „Klucz”. Pola wypełniają się od lewej: 1–⁠6 to współrzędne, 7–⁠10 to kod do klawiatury.</span>',
   stLining:'Wyrównywanie… <span>Cyfry usłyszane w trakcie transmisji: {n} (lista poniżej). Pola wypełnią się po usłyszeniu przerwy przed cyfrą 1.</span>',
   stConflict:'Cyfry, w których powtórzenia się różnią: {n}. <span>Słuchaj dalej, trzecie przejście rozstrzygnie.</span>',
   stAllConf:'Wszystkie 10 cyfr potwierdzone powtórzeniem. <span>Można używać.</span>',
@@ -541,7 +544,7 @@ pl:{
 es:{
   language:'Idioma',
   sub:'Badlands · Morse → coordenadas + teclado',
-  gridLabel:'Coordenadas · dígitos 1–6', codeLabel:'Código del teclado · dígitos 7–10',
+  gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código del teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Seleccionado',
   lgEmpty:'aún no oído', lgOnce:'oído una vez', lgConf:'confirmado al repetirse', lgBad:'las repeticiones no coinciden', lgTimes:'×2 = veces oído',
   tabListen:'Escuchar', tabTwo:'Dos teclas', tabPaddle:'Pulsador',
@@ -562,7 +565,7 @@ es:{
   pass:'Correcto', fail:'Fallo',
   selfTestResult:'{r}: una emisión sintética de {d} a {f} Hz se decodificó como {o} en {ms} ms.',
   playing:'Reproduciendo {d} dos veces a 600 Hz. Apunta otro móvil con «Escuchar» hacia este altavoz.',
-  stNothing:'Nada aún. <span>Elige abajo «Escuchar», «Dos teclas» o «Pulsador». Las casillas se llenan de izquierda a derecha: 1–6 son las coordenadas, 7–10 el código del teclado.</span>',
+  stNothing:'Nada aún. <span>Elige abajo «Escuchar», «Dos teclas» o «Pulsador». Las casillas se llenan de izquierda a derecha: 1–⁠6 son las coordenadas, 7–⁠10 el código del teclado.</span>',
   stLining:{one:'Alineando… <span>Se ha oído {n} dígito a mitad de emisión (mira la lista de abajo). Las casillas se llenan al oír la pausa antes del dígito 1.</span>',
             other:'Alineando… <span>Se han oído {n} dígitos a mitad de emisión (mira la lista de abajo). Las casillas se llenan al oír la pausa antes del dígito 1.</span>'},
   stConflict:{one:'{n} dígito no coincide entre repeticiones. <span>Sigue escuchando: una tercera pasada lo resuelve.</span>',
@@ -580,7 +583,7 @@ es:{
 fr:{
   language:'Langue',
   sub:'Badlands · Morse → coordonnées + code',
-  gridLabel:'Coordonnées · chiffres 1–6', codeLabel:'Code du clavier · chiffres 7–10',
+  gridLabel:'Coordonnées · chiffres 1–⁠6', codeLabel:'Code du clavier · chiffres 7–⁠10',
   copy:'Copier', copied:'Copié', selected:'Sélectionné',
   lgEmpty:'pas encore entendu', lgOnce:'entendu une fois', lgConf:'confirmé par une répétition', lgBad:'les répétitions divergent', lgTimes:'×2 = nombre d’écoutes',
   tabListen:'Écouter', tabTwo:'Deux touches', tabPaddle:'Clé',
@@ -601,7 +604,7 @@ fr:{
   pass:'Réussi', fail:'Échec',
   selfTestResult:'{r} : une émission synthétique de {d} à {f} Hz a été décodée en {o} en {ms} ms.',
   playing:'Lecture de {d} deux fois à 600 Hz. Pointe un autre téléphone en mode « Écouter » vers ce haut-parleur.',
-  stNothing:'Rien pour l’instant. <span>Choisis ci-dessous « Écouter », « Deux touches » ou « Clé ». Les cases se remplissent de gauche à droite : 1–6 pour les coordonnées, 7–10 pour le code du clavier.</span>',
+  stNothing:'Rien pour l’instant. <span>Choisis ci-dessous « Écouter », « Deux touches » ou « Clé ». Les cases se remplissent de gauche à droite : 1–⁠6 pour les coordonnées, 7–⁠10 pour le code du clavier.</span>',
   stLining:{one:'Alignement… <span>{n} chiffre entendu en cours d’émission (voir la liste ci-dessous). Les cases se remplissent dès que la pause avant le chiffre 1 est entendue.</span>',
             other:'Alignement… <span>{n} chiffres entendus en cours d’émission (voir la liste ci-dessous). Les cases se remplissent dès que la pause avant le chiffre 1 est entendue.</span>'},
   stConflict:{one:'{n} chiffre diffère entre les répétitions. <span>Continue d’écouter : un troisième passage tranchera.</span>',
@@ -619,7 +622,7 @@ fr:{
 'pt-BR':{
   language:'Idioma',
   sub:'Badlands · Morse → coordenadas + teclado',
-  gridLabel:'Coordenadas · dígitos 1–6', codeLabel:'Código do teclado · dígitos 7–10',
+  gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código do teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Selecionado',
   lgEmpty:'ainda não ouvido', lgOnce:'ouvido uma vez', lgConf:'confirmado por repetição', lgBad:'repetições divergem', lgTimes:'×2 = vezes ouvido',
   tabListen:'Ouvir', tabTwo:'Duas teclas', tabPaddle:'Chave',
@@ -640,7 +643,7 @@ fr:{
   pass:'Passou', fail:'Falhou',
   selfTestResult:'{r}: uma transmissão sintética de {d} a {f} Hz foi decodificada como {o} em {ms} ms.',
   playing:'Tocando {d} duas vezes a 600 Hz. Aponte outro celular no modo “Ouvir” para este alto-falante.',
-  stNothing:'Nada ainda. <span>Escolha abaixo “Ouvir”, “Duas teclas” ou “Chave”. Os campos se preenchem da esquerda para a direita: 1–6 são as coordenadas, 7–10 o código do teclado.</span>',
+  stNothing:'Nada ainda. <span>Escolha abaixo “Ouvir”, “Duas teclas” ou “Chave”. Os campos se preenchem da esquerda para a direita: 1–⁠6 são as coordenadas, 7–⁠10 o código do teclado.</span>',
   stLining:{one:'Alinhando… <span>{n} dígito ouvido no meio da transmissão (veja a lista abaixo). Os campos se preenchem quando a pausa antes do dígito 1 for ouvida.</span>',
             other:'Alinhando… <span>{n} dígitos ouvidos no meio da transmissão (veja a lista abaixo). Os campos se preenchem quando a pausa antes do dígito 1 for ouvida.</span>'},
   stConflict:{one:'{n} dígito diverge entre as repetições. <span>Continue ouvindo: uma terceira passada resolve.</span>',
@@ -703,7 +706,8 @@ function cells(){
 function render(){
   const {r, waiting} = cells();
   const slot = c => `<span class="slot s-${c.state}"><b>${c.d ?? '_'}</b><small>${c.n>1?'×'+c.n:(c.n?'×1':'&nbsp;')}</small></span>`;
-  $('gridOut').innerHTML = r.cells.slice(0,3).map(slot).join('') + '<span class="gapx"></span>' + r.cells.slice(3,6).map(slot).join('');
+  const grp = (ax, cs) => `<span class="grp"><span class="ax">${ax}</span><span class="trip">${cs.map(slot).join('')}</span></span>`;
+  $('gridOut').innerHTML = grp('X ↔', r.cells.slice(0,3)) + '<span class="gapx"></span>' + grp('Y ↕', r.cells.slice(3,6));
   $('codeOut').innerHTML = r.cells.slice(6,10).map(slot).join('');
   $('copyGrid').disabled = !r.cells.slice(0,6).every(c=>c.d);
   $('copyCode').disabled = !r.cells.slice(6).every(c=>c.d);
