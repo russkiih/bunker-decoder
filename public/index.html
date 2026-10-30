@@ -140,8 +140,8 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
 .mapctl svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
 .m-land{fill:#1c2016}
 .m-minor,.m-major,.m-edge,.m-cross,.m-sq,.m-cell,.m-ring{vector-effect:non-scaling-stroke}
-.m-minor{stroke:#272c20;stroke-width:1}
-.m-major{stroke:#3a4030;stroke-width:1}
+.m-minor{stroke:rgba(231,227,210,.07);stroke-width:1}
+.m-major{stroke:rgba(231,227,210,.16);stroke-width:1}
 .m-edge{fill:none;stroke:#5a6148;stroke-width:1.5}
 .m-cross{stroke:var(--amber-dim);stroke-width:1;stroke-dasharray:4 4}
 .m-sq{fill:rgba(234,165,60,.08);stroke:var(--amber-dim);stroke-width:1}
@@ -1062,6 +1062,11 @@ $('playBtn').onclick = () => {
 // then Y (100 m steps from the north edge). SVG units are metres with y pointing south, like the grid.
 const MAP_M = 16384, FULL = { x: -0.075 * MAP_M, y: -0.075 * MAP_M, w: 1.09 * MAP_M }, MIN_W = 500;
 const mapSvg = $('mapSvg');
+// Base layer is built once (terrain picture over a plain fill); everything else redraws into mapLayer.
+mapSvg.innerHTML = `<rect class="m-land" x="0" y="0" width="${MAP_M}" height="${MAP_M}"/>`
+  + `<image href="nasdara-terrain.webp" x="0" y="0" width="${MAP_M}" height="${MAP_M}" preserveAspectRatio="none" decoding="async"/>`
+  + `<g id="mapLayer"></g>`;
+const mapLayer = mapSvg.querySelector('#mapLayer');
 let mapView = { ...FULL }, mapPin = null, mapAnim = 0;
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
 function clampView(v){
@@ -1071,7 +1076,6 @@ function clampView(v){
 function drawMap(){
   const { x, y, w } = mapView, u = w / 100;           // u = 1% of the view, keeps marks a steady size on screen
   const L = [];
-  L.push(`<rect class="m-land" x="0" y="0" width="${MAP_M}" height="${MAP_M}"/>`);
   if (w <= 4200) {                                     // 100 m lines once zoomed in
     for (let g = Math.max(100, Math.ceil(x / 100) * 100); g <= Math.min(MAP_M, x + w); g += 100) if (g % 1000) L.push(`<line class="m-minor" x1="${g}" y1="0" x2="${g}" y2="${MAP_M}"/>`);
     for (let g = Math.max(100, Math.ceil(y / 100) * 100); g <= Math.min(MAP_M, y + w); g += 100) if (g % 1000) L.push(`<line class="m-minor" x1="0" y1="${g}" x2="${MAP_M}" y2="${g}"/>`);
@@ -1104,7 +1108,7 @@ function drawMap(){
   }
   L.push(`<rect class="m-band" x="${x}" y="${y}" width="${bh}" height="${bh}"/>`);
   mapSvg.setAttribute('viewBox', `${x} ${y} ${w} ${w}`);
-  mapSvg.innerHTML = L.join('');
+  mapLayer.innerHTML = L.join('');
   mapSvg.style.touchAction = w >= FULL.w * 0.999 ? 'pan-y' : 'none';   // whole map: let the page scroll; zoomed: pan the map
   $('mapIn').disabled = w <= MIN_W * 1.001; $('mapOut').disabled = w >= FULL.w * 0.999;
 }

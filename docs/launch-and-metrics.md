@@ -121,3 +121,5 @@ ORDER BY successes DESC;
 ## 7. Map place data
 
 The map's 63 named places (capital and districts, cities, villages, military sites) live in the `PLACES` list in `public/index.html`, one line each: kind, name, grid X, grid Y. The positions came from a community-supplied list and have not been checked in game. Spot-check a few well-known places against iZurvive before promoting the map, and fix any wrong line directly; nothing else needs to change.
+
+The terrain under the map is `public/nasdara-terrain.webp`, made from a full-map Nasdara terrain image supplied by the project owner (source not yet recorded). Credit its maker in the About dialog once known, ideally with their okay. To swap in a sharper or label-free source, run `scripts/tone-terrain.py` (needs Python with Pillow and NumPy).
