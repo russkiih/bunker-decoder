@@ -117,3 +117,7 @@ WHERE event_name IN ('decode_success', 'decode_fail')
 GROUP BY community, mode
 ORDER BY successes DESC;
 ```
+
+## 7. Map place data
+
+The map's 63 named places (capital and districts, cities, villages, military sites) live in the `PLACES` list in `public/index.html`, one line each: kind, name, grid X, grid Y. The positions came from a community-supplied list and have not been checked in game. Spot-check a few well-known places against iZurvive before promoting the map, and fix any wrong line directly; nothing else needs to change.
