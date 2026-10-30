@@ -128,7 +128,31 @@ dialog.about h2{font:800 1.6rem var(--f-display);letter-spacing:.04em;text-trans
 dialog.about p{margin:0 0 12px;line-height:1.5}
 dialog.about a{color:var(--amber)}
 button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visible,.linkbtn:focus-visible,.foot a:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){.meter i{transition:none}}
+/* Nasdara grid map */
+.mapbox{display:flex;flex-direction:column;gap:8px}
+.mapwrap{position:relative;aspect-ratio:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+#mapSvg{display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none}
+#mapSvg.drag{cursor:grabbing}
+.mapctl{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:6px}
+.mapctl button{width:40px;height:40px;padding:0;border-radius:6px;border:1px solid var(--line);background:rgba(32,36,26,.92);color:var(--fg);display:grid;place-items:center;cursor:pointer}
+.mapctl button:disabled{opacity:.35;cursor:default}
+.mapctl button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.mapctl svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.m-land{fill:#1c2016}
+.m-minor,.m-major,.m-edge,.m-cross,.m-sq,.m-cell,.m-ring{vector-effect:non-scaling-stroke}
+.m-minor{stroke:#272c20;stroke-width:1}
+.m-major{stroke:#3a4030;stroke-width:1}
+.m-edge{fill:none;stroke:#5a6148;stroke-width:1.5}
+.m-cross{stroke:var(--amber-dim);stroke-width:1;stroke-dasharray:4 4}
+.m-sq{fill:rgba(234,165,60,.08);stroke:var(--amber-dim);stroke-width:1}
+.m-cell{fill:rgba(234,165,60,.35);stroke:var(--amber);stroke-width:1.5}
+.m-dot{fill:var(--amber);stroke:var(--bg)}
+.m-ring{fill:none;stroke:var(--amber);stroke-width:2;transform-box:fill-box;transform-origin:center;animation:mring 1.8s ease-out infinite}
+@keyframes mring{from{transform:scale(.6);opacity:1}to{transform:scale(2.2);opacity:0}}
+.m-band{fill:rgba(23,26,19,.9)}
+.m-lab{fill:var(--muted);font-family:var(--f-mono);font-weight:500}
+.m-pinlab{fill:var(--amber);font-family:var(--f-mono);font-weight:700}
+@media (prefers-reduced-motion:reduce){.meter i{transition:none}.m-ring{animation:none;opacity:.6}}
 </style>
 </head>
 <body>
@@ -190,6 +214,20 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
   </section>
 
   <div class="btnrow"><button class="btn" id="clearBtn" data-i18n="clear">Clear everything</button></div>
+
+  <section class="mapbox" aria-labelledby="mapLabel">
+    <div class="label" id="mapLabel" data-i18n="mapLabel">Map · Nasdara grid</div>
+    <div class="mapwrap">
+      <svg id="mapSvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="mapNote"></svg>
+      <div class="mapctl">
+        <button id="mapIn" data-i18n-label="zoomIn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button id="mapOut" data-i18n-label="zoomOut"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <button id="mapPin" data-i18n-label="zoomPin" disabled><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></button>
+        <button id="mapFit" data-i18n-label="zoomFit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      </div>
+    </div>
+    <p class="note" id="mapNote"></p>
+  </section>
 
   <details class="diag">
     <summary data-i18n="diag">Diagnostics</summary>
@@ -451,7 +489,7 @@ const LANGS = [['en','English'],['ru','Русский'],['de','Deutsch'],['pl','
 const STR = {
 en:{
   language:'Language',
-  about:'About', aboutText:'Turns the Morse radio broadcast from a Badlands bunker into its map grid and keypad code. Audio stays on your phone. Anonymous usage counts help improve the tool.', close:'Close', builtBy:'Built by {name}', consentText:'Can we count anonymous usage with Google Analytics to improve the tool? Audio never leaves your phone.', allow:'Allow', decline:'No thanks', privacy:'Privacy',
+  about:'About', aboutText:'Turns the Morse radio broadcast from a Badlands bunker into its map grid and keypad code. Audio stays on your phone. Anonymous usage counts help improve the tool.', close:'Close', builtBy:'Built by {name}', mapLabel:'Map · Nasdara grid', mapEmpty:'The spot appears here once all six grid digits are in. Grid only, no terrain: each square is 1 km.', mapAt:'X {x} · Y {y}: {e} km from the west edge, {n} km from the north edge. Grid only, no terrain.', mapOutside:'X {x} · Y {y} falls outside the 16.4 km map. Check the grid digits.', zoomIn:'Zoom in', zoomOut:'Zoom out', zoomFit:'Whole map', zoomPin:'Zoom to the spot', consentText:'Can we count anonymous usage with Google Analytics to improve the tool? Audio never leaves your phone.', allow:'Allow', decline:'No thanks', privacy:'Privacy',
   sub:'Bunker radio → grid + keypad',
   gridLabel:'Grid reference · digits 1–⁠6', codeLabel:'Keypad code · digits 7–⁠10',
   copy:'Copy', copied:'Copied', selected:'Selected',
@@ -490,7 +528,7 @@ en:{
 },
 ru:{
   language:'Язык',
-  about:'О приложении', aboutText:'Превращает радиопередачу Морзе из бункера Badlands в координаты на карте и код панели. Звук остаётся на вашем телефоне. Анонимная статистика использования помогает улучшать приложение.', close:'Закрыть', builtBy:'Автор: {name}', consentText:'Можно собирать анонимную статистику через Google Analytics, чтобы улучшать приложение? Звук никогда не покидает телефон.', allow:'Разрешить', decline:'Нет, спасибо', privacy:'Конфиденциальность',
+  about:'О приложении', aboutText:'Превращает радиопередачу Морзе из бункера Badlands в координаты на карте и код панели. Звук остаётся на вашем телефоне. Анонимная статистика использования помогает улучшать приложение.', close:'Закрыть', builtBy:'Автор: {name}', mapLabel:'Карта · сетка Насдары', mapEmpty:'Точка появится здесь, когда будут известны все шесть цифр координат. Только сетка, без рельефа: каждый квадрат — 1 км.', mapAt:'X {x} · Y {y}: {e} км от западного края, {n} км от северного края. Только сетка, без рельефа.', mapOutside:'X {x} · Y {y} — за пределами карты 16,4 км. Проверьте цифры координат.', zoomIn:'Приблизить', zoomOut:'Отдалить', zoomFit:'Вся карта', zoomPin:'К точке', consentText:'Можно собирать анонимную статистику через Google Analytics, чтобы улучшать приложение? Звук никогда не покидает телефон.', allow:'Разрешить', decline:'Нет, спасибо', privacy:'Конфиденциальность',
   sub:'Радио бункера → координаты + код',
   gridLabel:'Координаты на карте · цифры 1–⁠6', codeLabel:'Код панели · цифры 7–⁠10',
   copy:'Копировать', copied:'Скопировано', selected:'Выделено',
@@ -527,7 +565,7 @@ ru:{
 },
 de:{
   language:'Sprache',
-  about:'Info', aboutText:'Wandelt die Morse-Funksendung eines Badlands-Bunkers in Kartenkoordinate und Tastenfeld-Code um. Der Ton bleibt auf deinem Handy. Anonyme Nutzungszahlen helfen, das Tool zu verbessern.', close:'Schließen', builtBy:'Erstellt von {name}', consentText:'Dürfen wir die Nutzung anonym mit Google Analytics zählen, um das Tool zu verbessern? Der Ton verlässt nie dein Handy.', allow:'Erlauben', decline:'Nein danke', privacy:'Datenschutz',
+  about:'Info', aboutText:'Wandelt die Morse-Funksendung eines Badlands-Bunkers in Kartenkoordinate und Tastenfeld-Code um. Der Ton bleibt auf deinem Handy. Anonyme Nutzungszahlen helfen, das Tool zu verbessern.', close:'Schließen', builtBy:'Erstellt von {name}', mapLabel:'Karte · Nasdara-Raster', mapEmpty:'Der Punkt erscheint hier, sobald alle sechs Koordinatenziffern da sind. Nur Raster, kein Gelände: jedes Quadrat ist 1 km.', mapAt:'X {x} · Y {y}: {e} km vom Westrand, {n} km vom Nordrand. Nur Raster, kein Gelände.', mapOutside:'X {x} · Y {y} liegt außerhalb der 16,4-km-Karte. Prüfe die Koordinatenziffern.', zoomIn:'Vergrößern', zoomOut:'Verkleinern', zoomFit:'Ganze Karte', zoomPin:'Zum Punkt', consentText:'Dürfen wir die Nutzung anonym mit Google Analytics zählen, um das Tool zu verbessern? Der Ton verlässt nie dein Handy.', allow:'Erlauben', decline:'Nein danke', privacy:'Datenschutz',
   sub:'Bunkerfunk → Koordinate + Code',
   gridLabel:'Kartenkoordinate · Ziffern 1–⁠6', codeLabel:'Tastenfeld-Code · Ziffern 7–⁠10',
   copy:'Kopieren', copied:'Kopiert', selected:'Markiert',
@@ -566,7 +604,7 @@ de:{
 },
 pl:{
   language:'Język',
-  about:'O aplikacji', aboutText:'Zamienia transmisję Morse’a z bunkra w Badlands na współrzędne i kod do klawiatury. Dźwięk zostaje na twoim telefonie. Anonimowe statystyki użycia pomagają ulepszać narzędzie.', close:'Zamknij', builtBy:'Autor: {name}', consentText:'Czy możemy zbierać anonimowe statystyki przez Google Analytics, żeby ulepszać narzędzie? Dźwięk nigdy nie opuszcza telefonu.', allow:'Zezwól', decline:'Nie, dziękuję', privacy:'Prywatność',
+  about:'O aplikacji', aboutText:'Zamienia transmisję Morse’a z bunkra w Badlands na współrzędne i kod do klawiatury. Dźwięk zostaje na twoim telefonie. Anonimowe statystyki użycia pomagają ulepszać narzędzie.', close:'Zamknij', builtBy:'Autor: {name}', mapLabel:'Mapa · siatka Nasdary', mapEmpty:'Punkt pojawi się tutaj po wpisaniu wszystkich sześciu cyfr współrzędnych. Tylko siatka, bez terenu: każdy kwadrat to 1 km.', mapAt:'X {x} · Y {y}: {e} km od zachodniej krawędzi, {n} km od północnej krawędzi. Tylko siatka, bez terenu.', mapOutside:'X {x} · Y {y} wypada poza mapą 16,4 km. Sprawdź cyfry współrzędnych.', zoomIn:'Przybliż', zoomOut:'Oddal', zoomFit:'Cała mapa', zoomPin:'Do punktu', consentText:'Czy możemy zbierać anonimowe statystyki przez Google Analytics, żeby ulepszać narzędzie? Dźwięk nigdy nie opuszcza telefonu.', allow:'Zezwól', decline:'Nie, dziękuję', privacy:'Prywatność',
   sub:'Radio z bunkra → współrzędne + kod',
   gridLabel:'Współrzędne · cyfry 1–⁠6', codeLabel:'Kod do klawiatury · cyfry 7–⁠10',
   copy:'Kopiuj', copied:'Skopiowano', selected:'Zaznaczono',
@@ -603,7 +641,7 @@ pl:{
 },
 es:{
   language:'Idioma',
-  about:'Acerca de', aboutText:'Convierte la emisión de radio en Morse de un búnker de Badlands en las coordenadas del mapa y el código del teclado. El audio se queda en tu móvil. Las estadísticas de uso anónimas ayudan a mejorar la herramienta.', close:'Cerrar', builtBy:'Creado por {name}', consentText:'¿Podemos contar el uso de forma anónima con Google Analytics para mejorar la herramienta? El audio nunca sale de tu móvil.', allow:'Permitir', decline:'No, gracias', privacy:'Privacidad',
+  about:'Acerca de', aboutText:'Convierte la emisión de radio en Morse de un búnker de Badlands en las coordenadas del mapa y el código del teclado. El audio se queda en tu móvil. Las estadísticas de uso anónimas ayudan a mejorar la herramienta.', close:'Cerrar', builtBy:'Creado por {name}', mapLabel:'Mapa · cuadrícula de Nasdara', mapEmpty:'El punto aparece aquí cuando estén los seis dígitos de las coordenadas. Solo cuadrícula, sin terreno: cada cuadro mide 1 km.', mapAt:'X {x} · Y {y}: a {e} km del borde oeste y a {n} km del borde norte. Solo cuadrícula, sin terreno.', mapOutside:'X {x} · Y {y} queda fuera del mapa de 16,4 km. Revisa los dígitos de las coordenadas.', zoomIn:'Acercar', zoomOut:'Alejar', zoomFit:'Mapa completo', zoomPin:'Ir al punto', consentText:'¿Podemos contar el uso de forma anónima con Google Analytics para mejorar la herramienta? El audio nunca sale de tu móvil.', allow:'Permitir', decline:'No, gracias', privacy:'Privacidad',
   sub:'Radio del búnker → coordenadas + teclado',
   gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código del teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Seleccionado',
@@ -643,7 +681,7 @@ es:{
 },
 fr:{
   language:'Langue',
-  about:'À propos', aboutText:'Transforme l’émission radio en Morse d’un bunker de Badlands en coordonnées et en code du clavier. Le son reste sur ton téléphone. Des statistiques d’utilisation anonymes aident à améliorer l’outil.', close:'Fermer', builtBy:'Créé par {name}', consentText:'Pouvons-nous mesurer l’utilisation de façon anonyme avec Google Analytics pour améliorer l’outil ? Le son ne quitte jamais ton téléphone.', allow:'Autoriser', decline:'Non merci', privacy:'Confidentialité',
+  about:'À propos', aboutText:'Transforme l’émission radio en Morse d’un bunker de Badlands en coordonnées et en code du clavier. Le son reste sur ton téléphone. Des statistiques d’utilisation anonymes aident à améliorer l’outil.', close:'Fermer', builtBy:'Créé par {name}', mapLabel:'Carte · grille de Nasdara', mapEmpty:'Le point apparaît ici dès que les six chiffres des coordonnées sont là. Grille seule, sans relief : chaque carré fait 1 km.', mapAt:'X {x} · Y {y} : à {e} km du bord ouest et à {n} km du bord nord. Grille seule, sans relief.', mapOutside:'X {x} · Y {y} est hors de la carte de 16,4 km. Vérifie les chiffres des coordonnées.', zoomIn:'Zoomer', zoomOut:'Dézoomer', zoomFit:'Carte entière', zoomPin:'Aller au point', consentText:'Pouvons-nous mesurer l’utilisation de façon anonyme avec Google Analytics pour améliorer l’outil ? Le son ne quitte jamais ton téléphone.', allow:'Autoriser', decline:'Non merci', privacy:'Confidentialité',
   sub:'Radio du bunker → coordonnées + code',
   gridLabel:'Coordonnées · chiffres 1–⁠6', codeLabel:'Code du clavier · chiffres 7–⁠10',
   copy:'Copier', copied:'Copié', selected:'Sélectionné',
@@ -683,7 +721,7 @@ fr:{
 },
 'pt-BR':{
   language:'Idioma',
-  about:'Sobre', aboutText:'Transforma a transmissão de rádio em Morse de um bunker de Badlands nas coordenadas do mapa e no código do teclado. O áudio fica no seu celular. Estatísticas de uso anônimas ajudam a melhorar a ferramenta.', close:'Fechar', builtBy:'Criado por {name}', consentText:'Podemos contar o uso de forma anônima com o Google Analytics para melhorar a ferramenta? O áudio nunca sai do seu celular.', allow:'Permitir', decline:'Não, obrigado', privacy:'Privacidade',
+  about:'Sobre', aboutText:'Transforma a transmissão de rádio em Morse de um bunker de Badlands nas coordenadas do mapa e no código do teclado. O áudio fica no seu celular. Estatísticas de uso anônimas ajudam a melhorar a ferramenta.', close:'Fechar', builtBy:'Criado por {name}', mapLabel:'Mapa · grade de Nasdara', mapEmpty:'O ponto aparece aqui quando os seis dígitos das coordenadas estiverem prontos. Só a grade, sem terreno: cada quadrado tem 1 km.', mapAt:'X {x} · Y {y}: a {e} km da borda oeste e a {n} km da borda norte. Só a grade, sem terreno.', mapOutside:'X {x} · Y {y} fica fora do mapa de 16,4 km. Confira os dígitos das coordenadas.', zoomIn:'Aproximar', zoomOut:'Afastar', zoomFit:'Mapa inteiro', zoomPin:'Ir ao ponto', consentText:'Podemos contar o uso de forma anônima com o Google Analytics para melhorar a ferramenta? O áudio nunca sai do seu celular.', allow:'Permitir', decline:'Não, obrigado', privacy:'Privacidade',
   sub:'Rádio do bunker → coordenadas + teclado',
   gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código do teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Selecionado',
@@ -783,6 +821,8 @@ function render(){
   const grp = (ax, cs) => `<span class="grp"><span class="ax">${ax}</span><span class="trip">${cs.map(slot).join('')}</span></span>`;
   $('gridOut').innerHTML = grp('X ↔', r.cells.slice(0,3)) + '<span class="gapx"></span>' + grp('Y ↕', r.cells.slice(3,6));
   $('codeOut').innerHTML = r.cells.slice(6,10).map(slot).join('');
+  const g6 = r.cells.slice(0,6);
+  setMapPin(!waiting && g6.every(c=>c.d) ? g6.map(c=>c.d).join('') : null);
   if(source && !waiting && !asm._ok && r.cells.every(c=>c.d)){ asm._ok = true; track('decode_success'); }
   $('copyGrid').disabled = !r.cells.slice(0,6).every(c=>c.d);
   $('copyCode').disabled = !r.cells.slice(6).every(c=>c.d);
@@ -1006,10 +1046,115 @@ $('playBtn').onclick = () => {
   s.onended=()=>{ playing=null; showPlayBtn(); ac.close(); };
 };
 
+// ---------- Nasdara grid map ----------
+// Grid only, no terrain. Map is 16384 m square; a 6-digit grid is X (100 m steps from the west edge)
+// then Y (100 m steps from the north edge). SVG units are metres with y pointing south, like the grid.
+const MAP_M = 16384, FULL = { x: -0.075 * MAP_M, y: -0.075 * MAP_M, w: 1.09 * MAP_M }, MIN_W = 500;
+const mapSvg = $('mapSvg');
+let mapView = { ...FULL }, mapPin = null, mapAnim = 0;
+const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
+function clampView(v){
+  const w = clampN(v.w, MIN_W, FULL.w);
+  return { w, x: clampN(v.x, FULL.x, FULL.x + FULL.w - w), y: clampN(v.y, FULL.y, FULL.y + FULL.w - w) };
+}
+function drawMap(){
+  const { x, y, w } = mapView, u = w / 100;           // u = 1% of the view, keeps marks a steady size on screen
+  const L = [];
+  L.push(`<rect class="m-land" x="0" y="0" width="${MAP_M}" height="${MAP_M}"/>`);
+  if (w <= 4200) {                                     // 100 m lines once zoomed in
+    for (let g = Math.max(100, Math.ceil(x / 100) * 100); g <= Math.min(MAP_M, x + w); g += 100) if (g % 1000) L.push(`<line class="m-minor" x1="${g}" y1="0" x2="${g}" y2="${MAP_M}"/>`);
+    for (let g = Math.max(100, Math.ceil(y / 100) * 100); g <= Math.min(MAP_M, y + w); g += 100) if (g % 1000) L.push(`<line class="m-minor" x1="0" y1="${g}" x2="${MAP_M}" y2="${g}"/>`);
+  }
+  for (let k = 1; k * 1000 < MAP_M; k++) {
+    L.push(`<line class="m-major" x1="${k * 1000}" y1="0" x2="${k * 1000}" y2="${MAP_M}"/>`, `<line class="m-major" x1="0" y1="${k * 1000}" x2="${MAP_M}" y2="${k * 1000}"/>`);
+  }
+  L.push(`<rect class="m-edge" x="0" y="0" width="${MAP_M}" height="${MAP_M}"/>`);
+  let px = null, py = null;
+  if (mapPin && !mapPin.out) {
+    const cx = mapPin.x * 100 + 50, cy = mapPin.y * 100 + 50; px = cx; py = cy;
+    L.push(`<rect class="m-sq" x="${Math.floor(mapPin.x / 10) * 1000}" y="${Math.floor(mapPin.y / 10) * 1000}" width="1000" height="1000"/>`);
+    L.push(`<line class="m-cross" x1="${cx}" y1="0" x2="${cx}" y2="${MAP_M}"/>`, `<line class="m-cross" x1="0" y1="${cy}" x2="${MAP_M}" y2="${cy}"/>`);
+    L.push(`<rect class="m-cell" x="${mapPin.x * 100}" y="${mapPin.y * 100}" width="100" height="100"/>`);
+    L.push(`<circle class="m-ring" cx="${cx}" cy="${cy}" r="${u * 2.4}"/>`, `<circle class="m-dot" cx="${cx}" cy="${cy}" r="${u * 1.5}" stroke-width="${u * 0.5}"/>`);
+  }
+  // edge bands with grid labels (000, 010 ... 160), so the numbers read like the decoded digits
+  const bh = u * 6.5, fs = u * 3.2, lab = (v) => String(v).padStart(3, '0');
+  L.push(`<rect class="m-band" x="${x}" y="${y}" width="${w}" height="${bh}"/>`, `<rect class="m-band" x="${x}" y="${y}" width="${bh}" height="${w}"/>`);
+  const stepX = fs * 2.8 > 1000 ? 2 : 1, stepY = fs * 1.7 > 1000 ? 2 : 1;   // thin out labels when zoomed all the way out
+  for (let k = 0; k * 1000 <= MAP_M; k++) {
+    const m = k * 1000;
+    if (k % stepX === 0 && m > x + bh + fs && m < x + w - fs && (px === null || Math.abs(m - px) > fs * 2.4)) L.push(`<text class="m-lab" x="${m}" y="${y + bh * 0.68}" font-size="${fs}" text-anchor="middle">${lab(k * 10)}</text>`);
+    if (k % stepY === 0 && m > y + bh + fs && m < y + w - fs && (py === null || Math.abs(m - py) > fs * 1.6)) L.push(`<text class="m-lab" x="${x + bh / 2}" y="${m + fs * 0.36}" font-size="${fs}" text-anchor="middle">${lab(k * 10)}</text>`);
+  }
+  if (px !== null) {
+    if (px > x + bh && px < x + w) L.push(`<text class="m-pinlab" x="${px}" y="${y + bh * 0.68}" font-size="${fs}" text-anchor="middle">${mapPin.xs}</text>`);
+    if (py > y + bh && py < y + w) L.push(`<text class="m-pinlab" x="${x + bh / 2}" y="${py + fs * 0.36}" font-size="${fs}" text-anchor="middle">${mapPin.ys}</text>`);
+  }
+  L.push(`<rect class="m-band" x="${x}" y="${y}" width="${bh}" height="${bh}"/>`);
+  mapSvg.setAttribute('viewBox', `${x} ${y} ${w} ${w}`);
+  mapSvg.innerHTML = L.join('');
+  mapSvg.style.touchAction = w >= FULL.w * 0.999 ? 'pan-y' : 'none';   // whole map: let the page scroll; zoomed: pan the map
+  $('mapIn').disabled = w <= MIN_W * 1.001; $('mapOut').disabled = w >= FULL.w * 0.999;
+}
+function setView(v, animate){
+  const to = clampView(v); cancelAnimationFrame(mapAnim);
+  if (!animate || matchMedia('(prefers-reduced-motion: reduce)').matches) { mapView = to; return drawMap(); }
+  const from = { ...mapView }, t0 = performance.now(), D = 320;
+  const step = (now) => { const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
+    mapView = { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e, w: from.w + (to.w - from.w) * e }; drawMap();
+    if (k < 1) mapAnim = requestAnimationFrame(step); };
+  mapAnim = requestAnimationFrame(step);
+}
+function zoomAt(f, cx, cy, animate){
+  const w = clampN(mapView.w * f, MIN_W, FULL.w), r = w / mapView.w;
+  setView({ w, x: cx - (cx - mapView.x) * r, y: cy - (cy - mapView.y) * r }, animate);
+}
+function zoomCenter(f){ zoomAt(f, mapView.x + mapView.w / 2, mapView.y + mapView.w / 2, true); }
+function toMap(ev){ const b = mapSvg.getBoundingClientRect(); return { x: mapView.x + (ev.clientX - b.left) / b.width * mapView.w, y: mapView.y + (ev.clientY - b.top) / b.height * mapView.w }; }
+function setMapPin(code){
+  const key = code || '';
+  if (key === (mapPin ? mapPin.code : '')) return;
+  const firstPin = !mapPin && code;
+  mapPin = code ? { code, xs: code.slice(0,3), ys: code.slice(3,6), x: +code.slice(0,3), y: +code.slice(3,6) } : null;
+  if (mapPin) mapPin.out = (mapPin.x * 100 >= MAP_M || mapPin.y * 100 >= MAP_M);
+  $('mapPin').disabled = !mapPin || mapPin.out;
+  if (!mapPin && mapView.w < FULL.w) setView(FULL, false); else drawMap();
+  updateMapNote();
+}
+function updateMapNote(){
+  const n = new Intl.NumberFormat(LANG, { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+  $('mapNote').textContent = !mapPin ? t('mapEmpty')
+    : mapPin.out ? t('mapOutside', { x: mapPin.xs, y: mapPin.ys })
+    : t('mapAt', { x: mapPin.xs, y: mapPin.ys, e: n.format(mapPin.x / 10), n: n.format(mapPin.y / 10) });
+}
+$('mapIn').onclick = () => zoomCenter(0.5);
+$('mapOut').onclick = () => zoomCenter(2);
+$('mapFit').onclick = () => setView(FULL, true);
+$('mapPin').onclick = () => { if (mapPin && !mapPin.out) { const w = 2400; setView({ w, x: mapPin.x * 100 + 50 - w / 2, y: mapPin.y * 100 + 50 - w / 2 }, true); } };
+mapSvg.addEventListener('wheel', e => { e.preventDefault(); const p = toMap(e); zoomAt(Math.exp(e.deltaY * 0.0015), p.x, p.y, false); }, { passive: false });
+mapSvg.addEventListener('dblclick', e => { const p = toMap(e); zoomAt(0.5, p.x, p.y, true); });
+// drag to pan, two fingers to pinch-zoom
+const ptrs = new Map(); let pinch = null;
+mapSvg.addEventListener('pointerdown', e => { ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); mapSvg.setPointerCapture?.(e.pointerId); mapSvg.classList.add('drag');
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), w: mapView.w }; } });
+mapSvg.addEventListener('pointermove', e => {
+  const prev = ptrs.get(e.pointerId); if (!prev) return;
+  const now = { x: e.clientX, y: e.clientY }; ptrs.set(e.pointerId, now);
+  const b = mapSvg.getBoundingClientRect(), k = mapView.w / b.width;
+  if (ptrs.size === 1) { if (mapView.w >= FULL.w * 0.999) return; setView({ ...mapView, x: mapView.x - (now.x - prev.x) * k, y: mapView.y - (now.y - prev.y) * k }, false); }
+  else if (ptrs.size === 2 && pinch) { const [p1, p2] = [...ptrs.values()], d = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    const mid = toMap({ clientX: (p1.x + p2.x) / 2, clientY: (p1.y + p2.y) / 2 }); zoomAt((pinch.w * pinch.d / Math.max(d, 1)) / mapView.w, mid.x, mid.y, false); }
+});
+const ptrUp = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (!ptrs.size) mapSvg.classList.remove('drag'); };
+mapSvg.addEventListener('pointerup', ptrUp); mapSvg.addEventListener('pointercancel', ptrUp);
+setLive($('mapNote'), updateMapNote);
+drawMap();
+
 // ---------- language ----------
 function applyLang(){
   document.documentElement.lang = LANG;
   all('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  all('[data-i18n-label]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nLabel)); el.title = t(el.dataset.i18nLabel); });
   $('langSel').setAttribute('aria-label', t('language'));
   $('langSel').value = LANG;
   live.forEach(fn => fn());
