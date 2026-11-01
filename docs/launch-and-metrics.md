@@ -123,3 +123,13 @@ ORDER BY successes DESC;
 The map's 63 named places (capital and districts, cities, villages, military sites) live in the `PLACES` list in `public/index.html`, one line each: kind, name, grid X, grid Y. The positions came from a community-supplied list and have not been checked in game. Spot-check a few well-known places against iZurvive before promoting the map, and fix any wrong line directly; nothing else needs to change.
 
 The terrain under the map is `public/nasdara-terrain.webp`: a label-free satellite-style render of the whole map supplied by the project owner (source not yet recorded), squared to 1024 px (16 m per pixel) and darkened slightly. Its highways line up with the place list to within a pixel or two. Credit its maker in the About dialog once known, ideally with their okay. To swap in a sharper source, run `scripts/prepare-terrain.py SOURCE public/nasdara-terrain.webp` (needs Python with Pillow and NumPy).
+
+## 8. Bug reports
+
+The footer's "Report a bug" opens a short form (category, description, optional Discord or Reddit name, and by default the digits on screen, language, mode and device type; never audio). Reports go to Firestore, collection `bugReports`, in the EU multi-region database. `firestore.rules` lets the public site only create reports with a fixed set of size-limited fields; nobody can read, change or delete them from the web.
+
+Read them in the Firebase console (Firestore → bugReports), or run `node scripts/bug-reports.mjs` (add `--json` or `--csv` for analysis). The script uses the ga4-reader service account, which first needs the **Cloud Datastore Viewer** role in Google Cloud IAM for project bunker-decoder.
+
+## 9. Credit
+
+The "Built by" credit and Twitch link are switched off for the Reddit launch. Turn them back on with `const CREDIT = { name: 'geezlys', twitch: 'geezlys' }` in `public/index.html`.

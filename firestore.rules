@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// Badlands Morse: the only thing the public site may do is add a bug report.
+// Reports are write-only from the web; read them in the Firebase console or with scripts/bug-reports.mjs.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function optStr(d, f, max) {
+      return !(f in d) || (d[f] is string && d[f].size() <= max);
+    }
+
+    match /bugReports/{reportId} {
+      allow create: if request.resource.data.keys().hasOnly(
+                         ['category', 'message', 'contact', 'lang', 'appVersion',
+                          'mode', 'grid', 'code', 'raw', 'pin', 'community', 'ua', 'screen', 'page'])
+                    && request.resource.data.keys().hasAll(['category', 'message', 'lang', 'appVersion'])
+                    && request.resource.data.category in ['digits', 'map', 'listen', 'other']
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() >= 3
+                    && request.resource.data.message.size() <= 1000
+                    && optStr(request.resource.data, 'contact', 100)
+                    && optStr(request.resource.data, 'lang', 10)
+                    && optStr(request.resource.data, 'appVersion', 20)
+                    && optStr(request.resource.data, 'mode', 10)
+                    && optStr(request.resource.data, 'grid', 6)
+                    && optStr(request.resource.data, 'code', 4)
+                    && optStr(request.resource.data, 'raw', 200)
+                    && optStr(request.resource.data, 'pin', 10)
+                    && optStr(request.resource.data, 'community', 40)
+                    && optStr(request.resource.data, 'ua', 300)
+                    && optStr(request.resource.data, 'screen', 30)
+                    && optStr(request.resource.data, 'page', 300);
+      allow read, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

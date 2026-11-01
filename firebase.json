@@ -3,18 +3,54 @@
     {
       "target": "app",
       "public": "public",
-      "ignore": ["firebase.json", "**/.*"],
-      "headers": [{"source": "**", "headers": [
-        {"key": "Permissions-Policy", "value": "microphone=(self)"},
-        {"key": "Cache-Control", "value": "no-cache"}]}]
+      "ignore": [
+        "firebase.json",
+        "**/.*"
+      ],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Permissions-Policy",
+              "value": "microphone=(self)"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        }
+      ]
     },
     {
       "target": "legacy",
       "public": "legacy",
-      "ignore": ["firebase.json", "**/.*"],
-      "rewrites": [{"source": "**", "destination": "/index.html"}],
-      "headers": [{"source": "**", "headers": [
-        {"key": "Cache-Control", "value": "no-cache"}]}]
+      "ignore": [
+        "firebase.json",
+        "**/.*"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        }
+      ]
     }
-  ]
+  ],
+  "firestore": {
+    "database": "(default)",
+    "rules": "firestore.rules"
+  }
 }

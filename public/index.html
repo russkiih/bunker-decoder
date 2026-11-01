@@ -127,6 +127,16 @@ dialog.about::backdrop{background:rgba(0,0,0,.6)}
 dialog.about h2{font:800 1.6rem var(--f-display);letter-spacing:.04em;text-transform:uppercase;margin:0 0 10px}
 dialog.about p{margin:0 0 12px;line-height:1.5}
 dialog.about a{color:var(--amber)}
+.bugbtn{display:inline-flex;align-items:center;gap:6px}
+.bugbtn svg{width:16px;height:16px;flex:none}
+.fld{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;font-size:.9rem;color:var(--muted)}
+dialog.about select,dialog.about textarea,dialog.about input[type=text]{font:inherit;font-size:16px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:5px;padding:10px;width:100%;box-sizing:border-box}
+dialog.about textarea{resize:vertical;min-height:96px}
+dialog.about select:focus-visible,dialog.about textarea:focus-visible,dialog.about input:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;margin:0 0 10px;cursor:pointer}
+.chk input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--amber);flex:none}
+#bugStatus:empty{display:none}
+#bugStatus.ok{color:var(--ok)} #bugStatus.err{color:var(--bad)}
 button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visible,.linkbtn:focus-visible,.foot a:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 /* Nasdara grid map */
 .mapbox{display:flex;flex-direction:column;gap:8px}
@@ -253,6 +263,7 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
   </details>
   <footer class="foot">
     <button class="linkbtn" id="aboutBtn" data-i18n="about">About</button>
+    <button class="linkbtn bugbtn" id="bugBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M12 11v9M8 13H4M20 13h-4M8 17l-3 2M16 17l3 2M8 9 5 7M16 9l3-2M10 6 9 3.5M14 6l1-2.5"/></svg><span data-i18n="bugBtn">Report a bug</span></button>
     <button class="linkbtn" id="privacyBtn" data-i18n="privacy">Privacy</button>
     <span id="twitchFoot"></span>
   </footer>
@@ -263,6 +274,22 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
     <div class="btnrow"><button class="btn mark" id="consentYes" data-i18n="allow">Allow</button><button class="btn" id="consentNo" data-i18n="decline">No thanks</button></div>
   </div>
 </div>
+<dialog class="about" id="bugDlg" aria-labelledby="bugTitle">
+  <h2 id="bugTitle" data-i18n="bugTitle">Report a problem</h2>
+  <label class="fld"><span data-i18n="bugCat">What went wrong?</span>
+    <select id="bugCat">
+      <option value="digits" data-i18n="catDigits">Wrong or missing digits</option>
+      <option value="map" data-i18n="catMap">Map or place is wrong</option>
+      <option value="listen" data-i18n="catListen">Listening doesn’t work</option>
+      <option value="other" data-i18n="catOther">Something else</option>
+    </select></label>
+  <label class="fld"><textarea id="bugMsg" rows="4" maxlength="1000" data-i18n-ph="bugMsgPh" data-i18n-label="bugMsgPh"></textarea></label>
+  <label class="fld"><input type="text" id="bugContact" maxlength="100" autocomplete="nickname" data-i18n-ph="bugContactPh" data-i18n-label="bugContactPh"></label>
+  <label class="chk"><input type="checkbox" id="bugState" checked><span data-i18n="bugState">Include the current digits and device type</span></label>
+  <p class="note" data-i18n="bugNote"></p>
+  <p class="note" id="bugStatus" role="status"></p>
+  <div class="btnrow"><button class="btn mark" id="bugSend" data-i18n="send">Send</button><button class="btn" id="bugCancel" data-i18n="cancel">Cancel</button></div>
+</dialog>
 <dialog class="about" id="aboutDlg">
   <h2>Badlands Morse</h2>
   <p data-i18n="aboutText"></p>
@@ -500,7 +527,7 @@ const LANGS = [['en','English'],['ru','Русский'],['de','Deutsch'],['pl','
 const STR = {
 en:{
   language:'Language',
-  about:'About', aboutText:'Turns the Morse radio broadcast from a Badlands bunker into its map grid and keypad code. Audio stays on your phone. Anonymous usage counts help improve the tool.', close:'Close', builtBy:'Built by {name}', mapLabel:'Map · Nasdara', mapNear:'{d} km {dir} of {place}.', mapAtPlace:'Right at {place}.', dirs:'north|north-east|east|south-east|south|south-west|west|north-west', mapEmpty:'The spot appears here once all six grid digits are in. Each square is 1 km.', mapAt:'X {x} · Y {y}: {e} km from the west edge, {n} km from the north edge.', mapOutside:'X {x} · Y {y} falls outside the 16.4 km map. Check the grid digits.', zoomIn:'Zoom in', zoomOut:'Zoom out', zoomFit:'Whole map', zoomPin:'Zoom to the spot', consentText:'Can we count anonymous usage with Google Analytics to improve the tool? Audio never leaves your phone.', allow:'Allow', decline:'No thanks', privacy:'Privacy',
+  about:'About', aboutText:'Turns the Morse radio broadcast from a Badlands bunker into its map grid and keypad code. Audio stays on your phone. Anonymous usage counts help improve the tool.', close:'Close', builtBy:'Built by {name}', mapLabel:'Map · Nasdara', mapNear:'{d} km {dir} of {place}.', mapAtPlace:'Right at {place}.', dirs:'north|north-east|east|south-east|south|south-west|west|north-west', mapEmpty:'The spot appears here once all six grid digits are in. Each square is 1 km.', mapAt:'X {x} · Y {y}: {e} km from the west edge, {n} km from the north edge.', mapOutside:'X {x} · Y {y} falls outside the 16.4 km map. Check the grid digits.', zoomIn:'Zoom in', zoomOut:'Zoom out', zoomFit:'Whole map', zoomPin:'Zoom to the spot', consentText:'Can we count anonymous usage with Google Analytics to improve the tool? Audio never leaves your phone.', allow:'Allow', decline:'No thanks', privacy:'Privacy', bugBtn:'Report a bug', bugTitle:'Report a problem', bugCat:'What went wrong?', catDigits:'Wrong or missing digits', catMap:'Map or place is wrong', catListen:'Listening doesn’t work', catOther:'Something else', bugMsgPh:'What happened, and what did you expect?', bugContactPh:'Discord or Reddit name (optional)', bugState:'Include the current digits and device type', bugNote:'We store your text and, if ticked, the digits on screen, language, mode and device type. Never audio.', send:'Send', cancel:'Cancel', sending:'Sending…', sent:'Thanks! Your report was sent.', sendFail:'Couldn’t send. Check your connection and try again.', bugShort:'Please write at least a few words.',
   sub:'Bunker radio → grid + keypad',
   gridLabel:'Grid reference · digits 1–⁠6', codeLabel:'Keypad code · digits 7–⁠10',
   copy:'Copy', copied:'Copied', selected:'Selected',
@@ -539,7 +566,7 @@ en:{
 },
 ru:{
   language:'Язык',
-  about:'О приложении', aboutText:'Превращает радиопередачу Морзе из бункера Badlands в координаты на карте и код панели. Звук остаётся на вашем телефоне. Анонимная статистика использования помогает улучшать приложение.', close:'Закрыть', builtBy:'Автор: {name}', mapLabel:'Карта · Насдара', mapNear:'{d} км {dir} от {place}.', mapAtPlace:'Прямо у {place}.', dirs:'к северу|к северо-востоку|к востоку|к юго-востоку|к югу|к юго-западу|к западу|к северо-западу', mapEmpty:'Точка появится здесь, когда будут известны все шесть цифр координат. Каждый квадрат — 1 км.', mapAt:'X {x} · Y {y}: {e} км от западного края, {n} км от северного края.', mapOutside:'X {x} · Y {y} — за пределами карты 16,4 км. Проверьте цифры координат.', zoomIn:'Приблизить', zoomOut:'Отдалить', zoomFit:'Вся карта', zoomPin:'К точке', consentText:'Можно собирать анонимную статистику через Google Analytics, чтобы улучшать приложение? Звук никогда не покидает телефон.', allow:'Разрешить', decline:'Нет, спасибо', privacy:'Конфиденциальность',
+  about:'О приложении', aboutText:'Превращает радиопередачу Морзе из бункера Badlands в координаты на карте и код панели. Звук остаётся на вашем телефоне. Анонимная статистика использования помогает улучшать приложение.', close:'Закрыть', builtBy:'Автор: {name}', mapLabel:'Карта · Насдара', mapNear:'{d} км {dir} от {place}.', mapAtPlace:'Прямо у {place}.', dirs:'к северу|к северо-востоку|к востоку|к юго-востоку|к югу|к юго-западу|к западу|к северо-западу', mapEmpty:'Точка появится здесь, когда будут известны все шесть цифр координат. Каждый квадрат — 1 км.', mapAt:'X {x} · Y {y}: {e} км от западного края, {n} км от северного края.', mapOutside:'X {x} · Y {y} — за пределами карты 16,4 км. Проверьте цифры координат.', zoomIn:'Приблизить', zoomOut:'Отдалить', zoomFit:'Вся карта', zoomPin:'К точке', consentText:'Можно собирать анонимную статистику через Google Analytics, чтобы улучшать приложение? Звук никогда не покидает телефон.', allow:'Разрешить', decline:'Нет, спасибо', privacy:'Конфиденциальность', bugBtn:'Сообщить об ошибке', bugTitle:'Сообщить о проблеме', bugCat:'Что пошло не так?', catDigits:'Неверные или пропущенные цифры', catMap:'Неверная карта или место', catListen:'Не работает прослушивание', catOther:'Другое', bugMsgPh:'Что случилось и что вы ожидали?', bugContactPh:'Ник в Discord или Reddit (необязательно)', bugState:'Приложить текущие цифры и тип устройства', bugNote:'Мы сохраняем ваш текст и, если отмечено, цифры на экране, язык, режим и тип устройства. Звук — никогда.', send:'Отправить', cancel:'Отмена', sending:'Отправка…', sent:'Спасибо! Отчёт отправлен.', sendFail:'Не удалось отправить. Проверьте соединение и попробуйте снова.', bugShort:'Напишите хотя бы пару слов.',
   sub:'Радио бункера → координаты + код',
   gridLabel:'Координаты на карте · цифры 1–⁠6', codeLabel:'Код панели · цифры 7–⁠10',
   copy:'Копировать', copied:'Скопировано', selected:'Выделено',
@@ -576,7 +603,7 @@ ru:{
 },
 de:{
   language:'Sprache',
-  about:'Info', aboutText:'Wandelt die Morse-Funksendung eines Badlands-Bunkers in Kartenkoordinate und Tastenfeld-Code um. Der Ton bleibt auf deinem Handy. Anonyme Nutzungszahlen helfen, das Tool zu verbessern.', close:'Schließen', builtBy:'Erstellt von {name}', mapLabel:'Karte · Nasdara', mapNear:'{d} km {dir} von {place}.', mapAtPlace:'Direkt bei {place}.', dirs:'nördlich|nordöstlich|östlich|südöstlich|südlich|südwestlich|westlich|nordwestlich', mapEmpty:'Der Punkt erscheint hier, sobald alle sechs Koordinatenziffern da sind. Jedes Quadrat ist 1 km.', mapAt:'X {x} · Y {y}: {e} km vom Westrand, {n} km vom Nordrand.', mapOutside:'X {x} · Y {y} liegt außerhalb der 16,4-km-Karte. Prüfe die Koordinatenziffern.', zoomIn:'Vergrößern', zoomOut:'Verkleinern', zoomFit:'Ganze Karte', zoomPin:'Zum Punkt', consentText:'Dürfen wir die Nutzung anonym mit Google Analytics zählen, um das Tool zu verbessern? Der Ton verlässt nie dein Handy.', allow:'Erlauben', decline:'Nein danke', privacy:'Datenschutz',
+  about:'Info', aboutText:'Wandelt die Morse-Funksendung eines Badlands-Bunkers in Kartenkoordinate und Tastenfeld-Code um. Der Ton bleibt auf deinem Handy. Anonyme Nutzungszahlen helfen, das Tool zu verbessern.', close:'Schließen', builtBy:'Erstellt von {name}', mapLabel:'Karte · Nasdara', mapNear:'{d} km {dir} von {place}.', mapAtPlace:'Direkt bei {place}.', dirs:'nördlich|nordöstlich|östlich|südöstlich|südlich|südwestlich|westlich|nordwestlich', mapEmpty:'Der Punkt erscheint hier, sobald alle sechs Koordinatenziffern da sind. Jedes Quadrat ist 1 km.', mapAt:'X {x} · Y {y}: {e} km vom Westrand, {n} km vom Nordrand.', mapOutside:'X {x} · Y {y} liegt außerhalb der 16,4-km-Karte. Prüfe die Koordinatenziffern.', zoomIn:'Vergrößern', zoomOut:'Verkleinern', zoomFit:'Ganze Karte', zoomPin:'Zum Punkt', consentText:'Dürfen wir die Nutzung anonym mit Google Analytics zählen, um das Tool zu verbessern? Der Ton verlässt nie dein Handy.', allow:'Erlauben', decline:'Nein danke', privacy:'Datenschutz', bugBtn:'Fehler melden', bugTitle:'Problem melden', bugCat:'Was ist schiefgelaufen?', catDigits:'Falsche oder fehlende Ziffern', catMap:'Karte oder Ort stimmt nicht', catListen:'Hören funktioniert nicht', catOther:'Etwas anderes', bugMsgPh:'Was ist passiert und was hast du erwartet?', bugContactPh:'Discord- oder Reddit-Name (optional)', bugState:'Aktuelle Ziffern und Gerätetyp mitsenden', bugNote:'Wir speichern deinen Text und, wenn angehakt, die angezeigten Ziffern, Sprache, Modus und Gerätetyp. Niemals Ton.', send:'Senden', cancel:'Abbrechen', sending:'Wird gesendet…', sent:'Danke! Deine Meldung wurde gesendet.', sendFail:'Senden fehlgeschlagen. Prüfe deine Verbindung und versuch es erneut.', bugShort:'Bitte schreib ein paar Worte.',
   sub:'Bunkerfunk → Koordinate + Code',
   gridLabel:'Kartenkoordinate · Ziffern 1–⁠6', codeLabel:'Tastenfeld-Code · Ziffern 7–⁠10',
   copy:'Kopieren', copied:'Kopiert', selected:'Markiert',
@@ -615,7 +642,7 @@ de:{
 },
 pl:{
   language:'Język',
-  about:'O aplikacji', aboutText:'Zamienia transmisję Morse’a z bunkra w Badlands na współrzędne i kod do klawiatury. Dźwięk zostaje na twoim telefonie. Anonimowe statystyki użycia pomagają ulepszać narzędzie.', close:'Zamknij', builtBy:'Autor: {name}', mapLabel:'Mapa · Nasdara', mapNear:'{d} km na {dir} od {place}.', mapAtPlace:'Tuż przy {place}.', dirs:'północ|północny wschód|wschód|południowy wschód|południe|południowy zachód|zachód|północny zachód', mapEmpty:'Punkt pojawi się tutaj po wpisaniu wszystkich sześciu cyfr współrzędnych. Każdy kwadrat to 1 km.', mapAt:'X {x} · Y {y}: {e} km od zachodniej krawędzi, {n} km od północnej krawędzi.', mapOutside:'X {x} · Y {y} wypada poza mapą 16,4 km. Sprawdź cyfry współrzędnych.', zoomIn:'Przybliż', zoomOut:'Oddal', zoomFit:'Cała mapa', zoomPin:'Do punktu', consentText:'Czy możemy zbierać anonimowe statystyki przez Google Analytics, żeby ulepszać narzędzie? Dźwięk nigdy nie opuszcza telefonu.', allow:'Zezwól', decline:'Nie, dziękuję', privacy:'Prywatność',
+  about:'O aplikacji', aboutText:'Zamienia transmisję Morse’a z bunkra w Badlands na współrzędne i kod do klawiatury. Dźwięk zostaje na twoim telefonie. Anonimowe statystyki użycia pomagają ulepszać narzędzie.', close:'Zamknij', builtBy:'Autor: {name}', mapLabel:'Mapa · Nasdara', mapNear:'{d} km na {dir} od {place}.', mapAtPlace:'Tuż przy {place}.', dirs:'północ|północny wschód|wschód|południowy wschód|południe|południowy zachód|zachód|północny zachód', mapEmpty:'Punkt pojawi się tutaj po wpisaniu wszystkich sześciu cyfr współrzędnych. Każdy kwadrat to 1 km.', mapAt:'X {x} · Y {y}: {e} km od zachodniej krawędzi, {n} km od północnej krawędzi.', mapOutside:'X {x} · Y {y} wypada poza mapą 16,4 km. Sprawdź cyfry współrzędnych.', zoomIn:'Przybliż', zoomOut:'Oddal', zoomFit:'Cała mapa', zoomPin:'Do punktu', consentText:'Czy możemy zbierać anonimowe statystyki przez Google Analytics, żeby ulepszać narzędzie? Dźwięk nigdy nie opuszcza telefonu.', allow:'Zezwól', decline:'Nie, dziękuję', privacy:'Prywatność', bugBtn:'Zgłoś błąd', bugTitle:'Zgłoś problem', bugCat:'Co poszło nie tak?', catDigits:'Złe lub brakujące cyfry', catMap:'Błędna mapa lub miejsce', catListen:'Słuchanie nie działa', catOther:'Coś innego', bugMsgPh:'Opisz, co się stało i czego oczekiwano.', bugContactPh:'Nick na Discordzie lub Reddicie (opcjonalnie)', bugState:'Dołącz obecne cyfry i typ urządzenia', bugNote:'Zapisujemy twój tekst oraz, jeśli zaznaczono, cyfry na ekranie, język, tryb i typ urządzenia. Nigdy dźwięku.', send:'Wyślij', cancel:'Anuluj', sending:'Wysyłanie…', sent:'Dzięki! Zgłoszenie wysłane.', sendFail:'Nie udało się wysłać. Sprawdź połączenie i spróbuj ponownie.', bugShort:'Napisz choć kilka słów.',
   sub:'Radio z bunkra → współrzędne + kod',
   gridLabel:'Współrzędne · cyfry 1–⁠6', codeLabel:'Kod do klawiatury · cyfry 7–⁠10',
   copy:'Kopiuj', copied:'Skopiowano', selected:'Zaznaczono',
@@ -652,7 +679,7 @@ pl:{
 },
 es:{
   language:'Idioma',
-  about:'Acerca de', aboutText:'Convierte la emisión de radio en Morse de un búnker de Badlands en las coordenadas del mapa y el código del teclado. El audio se queda en tu móvil. Las estadísticas de uso anónimas ayudan a mejorar la herramienta.', close:'Cerrar', builtBy:'Creado por {name}', mapLabel:'Mapa · Nasdara', mapNear:'A {d} km al {dir} de {place}.', mapAtPlace:'Justo en {place}.', dirs:'norte|noreste|este|sureste|sur|suroeste|oeste|noroeste', mapEmpty:'El punto aparece aquí cuando estén los seis dígitos de las coordenadas. Cada cuadro mide 1 km.', mapAt:'X {x} · Y {y}: a {e} km del borde oeste y a {n} km del borde norte.', mapOutside:'X {x} · Y {y} queda fuera del mapa de 16,4 km. Revisa los dígitos de las coordenadas.', zoomIn:'Acercar', zoomOut:'Alejar', zoomFit:'Mapa completo', zoomPin:'Ir al punto', consentText:'¿Podemos contar el uso de forma anónima con Google Analytics para mejorar la herramienta? El audio nunca sale de tu móvil.', allow:'Permitir', decline:'No, gracias', privacy:'Privacidad',
+  about:'Acerca de', aboutText:'Convierte la emisión de radio en Morse de un búnker de Badlands en las coordenadas del mapa y el código del teclado. El audio se queda en tu móvil. Las estadísticas de uso anónimas ayudan a mejorar la herramienta.', close:'Cerrar', builtBy:'Creado por {name}', mapLabel:'Mapa · Nasdara', mapNear:'A {d} km al {dir} de {place}.', mapAtPlace:'Justo en {place}.', dirs:'norte|noreste|este|sureste|sur|suroeste|oeste|noroeste', mapEmpty:'El punto aparece aquí cuando estén los seis dígitos de las coordenadas. Cada cuadro mide 1 km.', mapAt:'X {x} · Y {y}: a {e} km del borde oeste y a {n} km del borde norte.', mapOutside:'X {x} · Y {y} queda fuera del mapa de 16,4 km. Revisa los dígitos de las coordenadas.', zoomIn:'Acercar', zoomOut:'Alejar', zoomFit:'Mapa completo', zoomPin:'Ir al punto', consentText:'¿Podemos contar el uso de forma anónima con Google Analytics para mejorar la herramienta? El audio nunca sale de tu móvil.', allow:'Permitir', decline:'No, gracias', privacy:'Privacidad', bugBtn:'Reportar un error', bugTitle:'Reportar un problema', bugCat:'¿Qué salió mal?', catDigits:'Dígitos incorrectos o faltantes', catMap:'El mapa o el lugar está mal', catListen:'Escuchar no funciona', catOther:'Otra cosa', bugMsgPh:'¿Qué pasó y qué esperabas?', bugContactPh:'Nombre de Discord o Reddit (opcional)', bugState:'Incluir los dígitos actuales y el tipo de dispositivo', bugNote:'Guardamos tu texto y, si está marcado, los dígitos en pantalla, el idioma, el modo y el tipo de dispositivo. Nunca el audio.', send:'Enviar', cancel:'Cancelar', sending:'Enviando…', sent:'¡Gracias! Tu reporte se envió.', sendFail:'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.', bugShort:'Escribe al menos unas palabras.',
   sub:'Radio del búnker → coordenadas + teclado',
   gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código del teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Seleccionado',
@@ -692,7 +719,7 @@ es:{
 },
 fr:{
   language:'Langue',
-  about:'À propos', aboutText:'Transforme l’émission radio en Morse d’un bunker de Badlands en coordonnées et en code du clavier. Le son reste sur ton téléphone. Des statistiques d’utilisation anonymes aident à améliorer l’outil.', close:'Fermer', builtBy:'Créé par {name}', mapLabel:'Carte · Nasdara', mapNear:'À {d} km {dir} de {place}.', mapAtPlace:'Juste à {place}.', dirs:'au nord|au nord-est|à l’est|au sud-est|au sud|au sud-ouest|à l’ouest|au nord-ouest', mapEmpty:'Le point apparaît ici dès que les six chiffres des coordonnées sont là. Chaque carré fait 1 km.', mapAt:'X {x} · Y {y} : à {e} km du bord ouest et à {n} km du bord nord.', mapOutside:'X {x} · Y {y} est hors de la carte de 16,4 km. Vérifie les chiffres des coordonnées.', zoomIn:'Zoomer', zoomOut:'Dézoomer', zoomFit:'Carte entière', zoomPin:'Aller au point', consentText:'Pouvons-nous mesurer l’utilisation de façon anonyme avec Google Analytics pour améliorer l’outil ? Le son ne quitte jamais ton téléphone.', allow:'Autoriser', decline:'Non merci', privacy:'Confidentialité',
+  about:'À propos', aboutText:'Transforme l’émission radio en Morse d’un bunker de Badlands en coordonnées et en code du clavier. Le son reste sur ton téléphone. Des statistiques d’utilisation anonymes aident à améliorer l’outil.', close:'Fermer', builtBy:'Créé par {name}', mapLabel:'Carte · Nasdara', mapNear:'À {d} km {dir} de {place}.', mapAtPlace:'Juste à {place}.', dirs:'au nord|au nord-est|à l’est|au sud-est|au sud|au sud-ouest|à l’ouest|au nord-ouest', mapEmpty:'Le point apparaît ici dès que les six chiffres des coordonnées sont là. Chaque carré fait 1 km.', mapAt:'X {x} · Y {y} : à {e} km du bord ouest et à {n} km du bord nord.', mapOutside:'X {x} · Y {y} est hors de la carte de 16,4 km. Vérifie les chiffres des coordonnées.', zoomIn:'Zoomer', zoomOut:'Dézoomer', zoomFit:'Carte entière', zoomPin:'Aller au point', consentText:'Pouvons-nous mesurer l’utilisation de façon anonyme avec Google Analytics pour améliorer l’outil ? Le son ne quitte jamais ton téléphone.', allow:'Autoriser', decline:'Non merci', privacy:'Confidentialité', bugBtn:'Signaler un bug', bugTitle:'Signaler un problème', bugCat:'Qu’est-ce qui ne va pas ?', catDigits:'Chiffres faux ou manquants', catMap:'Carte ou lieu incorrect', catListen:'L’écoute ne marche pas', catOther:'Autre chose', bugMsgPh:'Que s’est-il passé et à quoi t’attendais-tu ?', bugContactPh:'Pseudo Discord ou Reddit (facultatif)', bugState:'Joindre les chiffres actuels et le type d’appareil', bugNote:'Nous enregistrons ton texte et, si coché, les chiffres affichés, la langue, le mode et le type d’appareil. Jamais le son.', send:'Envoyer', cancel:'Annuler', sending:'Envoi…', sent:'Merci ! Ton signalement a été envoyé.', sendFail:'Échec de l’envoi. Vérifie ta connexion et réessaie.', bugShort:'Écris au moins quelques mots.',
   sub:'Radio du bunker → coordonnées + code',
   gridLabel:'Coordonnées · chiffres 1–⁠6', codeLabel:'Code du clavier · chiffres 7–⁠10',
   copy:'Copier', copied:'Copié', selected:'Sélectionné',
@@ -732,7 +759,7 @@ fr:{
 },
 'pt-BR':{
   language:'Idioma',
-  about:'Sobre', aboutText:'Transforma a transmissão de rádio em Morse de um bunker de Badlands nas coordenadas do mapa e no código do teclado. O áudio fica no seu celular. Estatísticas de uso anônimas ajudam a melhorar a ferramenta.', close:'Fechar', builtBy:'Criado por {name}', mapLabel:'Mapa · Nasdara', mapNear:'A {d} km ao {dir} de {place}.', mapAtPlace:'Bem em {place}.', dirs:'norte|nordeste|leste|sudeste|sul|sudoeste|oeste|noroeste', mapEmpty:'O ponto aparece aqui quando os seis dígitos das coordenadas estiverem prontos. Cada quadrado tem 1 km.', mapAt:'X {x} · Y {y}: a {e} km da borda oeste e a {n} km da borda norte.', mapOutside:'X {x} · Y {y} fica fora do mapa de 16,4 km. Confira os dígitos das coordenadas.', zoomIn:'Aproximar', zoomOut:'Afastar', zoomFit:'Mapa inteiro', zoomPin:'Ir ao ponto', consentText:'Podemos contar o uso de forma anônima com o Google Analytics para melhorar a ferramenta? O áudio nunca sai do seu celular.', allow:'Permitir', decline:'Não, obrigado', privacy:'Privacidade',
+  about:'Sobre', aboutText:'Transforma a transmissão de rádio em Morse de um bunker de Badlands nas coordenadas do mapa e no código do teclado. O áudio fica no seu celular. Estatísticas de uso anônimas ajudam a melhorar a ferramenta.', close:'Fechar', builtBy:'Criado por {name}', mapLabel:'Mapa · Nasdara', mapNear:'A {d} km ao {dir} de {place}.', mapAtPlace:'Bem em {place}.', dirs:'norte|nordeste|leste|sudeste|sul|sudoeste|oeste|noroeste', mapEmpty:'O ponto aparece aqui quando os seis dígitos das coordenadas estiverem prontos. Cada quadrado tem 1 km.', mapAt:'X {x} · Y {y}: a {e} km da borda oeste e a {n} km da borda norte.', mapOutside:'X {x} · Y {y} fica fora do mapa de 16,4 km. Confira os dígitos das coordenadas.', zoomIn:'Aproximar', zoomOut:'Afastar', zoomFit:'Mapa inteiro', zoomPin:'Ir ao ponto', consentText:'Podemos contar o uso de forma anônima com o Google Analytics para melhorar a ferramenta? O áudio nunca sai do seu celular.', allow:'Permitir', decline:'Não, obrigado', privacy:'Privacidade', bugBtn:'Reportar um bug', bugTitle:'Reportar um problema', bugCat:'O que deu errado?', catDigits:'Dígitos errados ou faltando', catMap:'Mapa ou local errado', catListen:'Ouvir não funciona', catOther:'Outra coisa', bugMsgPh:'O que aconteceu e o que você esperava?', bugContactPh:'Nome no Discord ou Reddit (opcional)', bugState:'Incluir os dígitos atuais e o tipo de aparelho', bugNote:'Guardamos seu texto e, se marcado, os dígitos na tela, o idioma, o modo e o tipo de aparelho. Nunca o áudio.', send:'Enviar', cancel:'Cancelar', sending:'Enviando…', sent:'Valeu! Seu relato foi enviado.', sendFail:'Não foi possível enviar. Verifique sua conexão e tente de novo.', bugShort:'Escreva pelo menos algumas palavras.',
   sub:'Rádio do bunker → coordenadas + teclado',
   gridLabel:'Coordenadas · dígitos 1–⁠6', codeLabel:'Código do teclado · dígitos 7–⁠10',
   copy:'Copiar', copied:'Copiado', selected:'Selecionado',
@@ -802,7 +829,7 @@ const TEST_DIGITS = '0770581234';
 const DIGITS = {'-----':'0','.----':'1','..---':'2','...--':'3','....-':'4','.....':'5','-....':'6','--...':'7','---..':'8','----.':'9'};
 
 // Credit shown in the footer and About dialog. Leave twitch empty to hide the Twitch link.
-const CREDIT = { name: 'geezlys', twitch: 'geezlys' };   // footer: "Built by <name>" linking to Twitch
+const CREDIT = { name: '', twitch: '' };   // hidden for the Reddit launch; restore { name: 'geezlys', twitch: 'geezlys' } to show "Built by geezlys" + Twitch
 
 // Analytics: queue events until analytics.js loads; it drains window.bdQ and takes over.
 window.bdQ = window.bdQ || [];
@@ -1303,6 +1330,7 @@ if (window.ResizeObserver) { let lastW = 0; new ResizeObserver(() => { const w =
 function applyLang(){
   document.documentElement.lang = LANG;
   all('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  all('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
   all('[data-i18n-label]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nLabel)); el.title = t(el.dataset.i18nLabel); });
   $('langSel').setAttribute('aria-label', t('language'));
   $('langSel').value = LANG;
@@ -1336,6 +1364,46 @@ $('consentYes').onclick = () => setConsent('granted');
 $('consentNo').onclick = () => setConsent('denied');
 $('privacyBtn').onclick = () => { $('consentBar').hidden = false; $('consentYes').focus(); };
 if(!consentState()) $('consentBar').hidden = false;
+
+// Bug reports: written to Firestore bugReports through the REST API; the security rules allow create only.
+const APP_VERSION = '2026.11.01';
+const BUG_URL = 'https://firestore.googleapis.com/v1/projects/bunker-decoder/databases/(default)/documents/bugReports?key=AIzaSyDux_0DbSaXiSLUt-D4KopT3LT8tSAHX3I';
+function bugStatus(key, cls){ const el = $('bugStatus'); el.className = 'note ' + (cls || ''); el.textContent = key ? t(key) : ''; }
+$('bugBtn').onclick = () => {
+  bugStatus(''); $('bugSend').disabled = false;
+  if (!$('bugMsg').value) $('bugCat').value = source === 'listen' ? 'listen' : 'digits';
+  const d = $('bugDlg'); if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+  $('bugMsg').focus();
+};
+$('bugCancel').onclick = () => { const d = $('bugDlg'); if (d.close) d.close(); else d.removeAttribute('open'); };
+$('bugDlg').addEventListener('click', e => { if (e.target === e.currentTarget) $('bugCancel').click(); });
+$('bugSend').onclick = async () => {
+  const message = $('bugMsg').value.trim();
+  if (message.length < 3) { bugStatus('bugShort', 'err'); $('bugMsg').focus(); return; }
+  const data = { category: $('bugCat').value, message: message.slice(0, 1000), lang: LANG, appVersion: APP_VERSION };
+  const contact = $('bugContact').value.trim(); if (contact) data.contact = contact.slice(0, 100);
+  if ($('bugState').checked) {
+    const digits = cells().r.cells.map(c => c.d ?? '_').join('');
+    let community = 'direct'; try { community = localStorage.getItem('community') || 'direct'; } catch {}
+    Object.assign(data, {
+      mode: source || 'none', grid: digits.slice(0, 6), code: digits.slice(6, 10),
+      raw: (source === 'listen' ? liveRaw : keyedRaw).slice(-200),
+      pin: mapPin ? (mapPin.xs + ' ' + mapPin.ys) : 'none', community: community.slice(0, 40),
+      ua: navigator.userAgent.slice(0, 300), screen: `${innerWidth}x${innerHeight}@${devicePixelRatio || 1}`.slice(0, 30),
+      page: (location.pathname + location.search).slice(0, 300),
+    });
+  }
+  $('bugSend').disabled = true; bugStatus('sending');
+  try {
+    const fields = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, { stringValue: String(v) }]));
+    const r = await fetch(BUG_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ fields }) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    bugStatus('sent', 'ok'); $('bugMsg').value = '';
+    setTimeout(() => { if ($('bugDlg').open) $('bugCancel').click(); }, 1800);
+  } catch (e) {
+    bugStatus('sendFail', 'err'); $('bugSend').disabled = false;
+  }
+};
 
 $('aboutBtn').onclick = () => { const d = $('aboutDlg'); if(d.showModal) d.showModal(); else d.setAttribute('open',''); };
 $('aboutClose').onclick = () => { const d = $('aboutDlg'); if(d.close) d.close(); else d.removeAttribute('open'); };
