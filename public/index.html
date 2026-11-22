@@ -80,8 +80,24 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.7rem,9vw,2.4re
 .legend b{font-family:var(--f-mono)}
 
 /* tabs */
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.tabs button{font:600 .9rem var(--f-body);letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--muted);border:0;padding:12px 4px;cursor:pointer}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.tabs button{font:600 .8rem var(--f-body);letter-spacing:.06em;text-transform:uppercase;background:transparent;color:var(--muted);border:0;padding:12px 3px;cursor:pointer;line-height:1.2}
+/* Type tab number pad */
+.numpad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.numpad button{font:700 1.8rem var(--f-mono);padding:14px 0;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.numpad button.fn{font:600 .8rem var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.numpad button.down{background:var(--amber);color:var(--bg);border-color:var(--amber)}
+.slot.cur b{color:var(--amber)}
+/* Recent numbers */
+.hist{display:flex;flex-direction:column;gap:8px}
+.histlist{display:flex;flex-direction:column;gap:6px}
+.histlist button{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:10px 12px;color:var(--fg);cursor:pointer;font:inherit}
+.histlist .hd{font:700 1.05rem var(--f-mono);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.histlist .hd i{font-style:normal;font-size:.68rem;color:var(--amber);margin:0 3px 0 0}
+.histlist .hd i+i,.histlist .hd b+i{margin-left:10px}
+.histlist .hd b{font-weight:700}
+.histlist time{font-size:.78rem;color:var(--muted);flex:none}
+.hist .linkbtn{align-self:flex-start}
 .tabs button+button{border-left:1px solid var(--line)}
 .tabs button[aria-selected="true"]{background:var(--panel-2);color:var(--amber)}
 .pane{display:flex;flex-direction:column;gap:14px}
@@ -201,6 +217,7 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
     <button role="tab" id="tab-listen" aria-selected="true" data-pane="listen" data-i18n="tabListen">Listen</button>
     <button role="tab" id="tab-twokey" aria-selected="false" data-pane="twokey" data-i18n="tabTwo">Two-key</button>
     <button role="tab" id="tab-paddle" aria-selected="false" data-pane="paddle" data-i18n="tabPaddle">Paddle</button>
+    <button role="tab" id="tab-type" aria-selected="false" data-pane="type" data-i18n="tabType">Type</button>
   </div>
 
   <section class="pane" id="pane-listen">
@@ -234,7 +251,24 @@ button:focus-visible,.key:focus-visible,summary:focus-visible,.lang:focus-visibl
     <div><div class="label" data-i18n="keyedLabel">Keyed so far</div><div class="raw" data-raw></div></div>
   </section>
 
+  <section class="pane" id="pane-type" hidden>
+    <p class="note" data-i18n="typeHint">Tap the digits in order: 1–6 are the grid, 7–10 the keypad code.</p>
+    <div class="numpad" id="numpad">
+      <button data-num="1">1</button><button data-num="2">2</button><button data-num="3">3</button>
+      <button data-num="4">4</button><button data-num="5">5</button><button data-num="6">6</button>
+      <button data-num="7">7</button><button data-num="8">8</button><button data-num="9">9</button>
+      <button class="fn" data-num="skip" data-i18n="skip">Skip</button><button data-num="0">0</button><button class="fn" data-num="del" data-i18n="del">Delete</button>
+    </div>
+  </section>
+
   <div class="btnrow"><button class="btn" id="clearBtn" data-i18n="clear">Clear everything</button></div>
+
+  <section class="hist" id="histBox" aria-labelledby="histLabel" hidden>
+    <div class="label" id="histLabel" data-i18n="histLabel">Recent numbers</div>
+    <div class="histlist" id="histList"></div>
+    <p class="note" data-i18n="histNote">Saved on this phone every time you clear. Tap one to put its spot back on the map.</p>
+    <button class="linkbtn" id="histClear" data-i18n="histClear">Forget all</button>
+  </section>
 
   <section class="mapbox" aria-labelledby="mapLabel">
     <div class="label" id="mapLabel" data-i18n="mapLabel">Map · Nasdara</div>
@@ -545,6 +579,7 @@ en:{
   padHint:'Tap = short · hold = long. Commits on the 5th symbol.',
   key:'Key', spaceHint:'Spacebar works on desktop',
   clear:'Clear everything',
+  tabType:'Type', typeHint:'Tap the digits in order: 1–6 are the grid, 7–10 the keypad code.', skip:'Skip', del:'Delete', stTyped:'{n} of 10 typed in. <span>The spot shows on the map once digits 1–6 are in.</span>', histLabel:'Recent numbers', histNote:'Saved on this phone every time you clear. Tap one to put its spot back on the map.', histClear:'Forget all',
   diag:'Diagnostics', diagNote:'These checks run on their own and never touch your readout.',
   selfTest:'Run decoder self-test', play:'Play test broadcast', stopPlay:'Stop test broadcast',
   pass:'Pass', fail:'Fail',
@@ -584,6 +619,7 @@ ru:{
   padHint:'Касание = точка · удержание = тире. Ввод завершается на 5-м символе.',
   key:'Ключ', spaceHint:'На компьютере работает пробел',
   clear:'Очистить всё',
+  tabType:'Ввод', typeHint:'Нажимайте цифры по порядку: 1–6 — координаты, 7–10 — код панели.', skip:'Пропуск', del:'Стереть', stTyped:'Введено {n} из 10. <span>Точка появится на карте, когда будут цифры 1–6.</span>', histLabel:'Недавние номера', histNote:'Сохраняются на этом телефоне при каждой очистке. Нажмите, чтобы вернуть точку на карту.', histClear:'Удалить историю',
   diag:'Диагностика', diagNote:'Эти проверки работают отдельно и не трогают ваши результаты.',
   selfTest:'Самопроверка декодера', play:'Тестовая передача', stopPlay:'Остановить тест',
   pass:'Успех', fail:'Ошибка',
@@ -621,6 +657,7 @@ de:{
   padHint:'Tippen = kurz · Halten = lang. Nach dem 5. Zeichen übernommen.',
   key:'Taste', spaceHint:'Am Computer geht auch die Leertaste',
   clear:'Alles löschen',
+  tabType:'Eingabe', typeHint:'Tippe die Ziffern der Reihe nach: 1–6 sind die Koordinate, 7–10 der Tastenfeld-Code.', skip:'Lücke', del:'Löschen', stTyped:'{n} von 10 eingegeben. <span>Der Punkt erscheint auf der Karte, sobald die Ziffern 1–6 drin sind.</span>', histLabel:'Letzte Nummern', histNote:'Wird bei jedem Löschen auf diesem Handy gespeichert. Tippe eine an, um den Ort wieder auf die Karte zu holen.', histClear:'Verlauf löschen',
   diag:'Diagnose', diagNote:'Diese Tests laufen separat und ändern nie deine Anzeige.',
   selfTest:'Decoder-Selbsttest starten', play:'Testsendung abspielen', stopPlay:'Testsendung stoppen',
   pass:'Bestanden', fail:'Fehlgeschlagen',
@@ -660,6 +697,7 @@ pl:{
   padHint:'Stuknij = krótki · przytrzymaj = długi. Zatwierdza się po piątym znaku.',
   key:'Klucz', spaceHint:'Na komputerze działa spacja',
   clear:'Wyczyść wszystko',
+  tabType:'Wpisz', typeHint:'Stukaj cyfry po kolei: 1–6 to współrzędne, 7–10 kod do klawiatury.', skip:'Pomiń', del:'Usuń', stTyped:'Wpisano {n} z 10. <span>Punkt pojawi się na mapie po wpisaniu cyfr 1–6.</span>', histLabel:'Ostatnie numery', histNote:'Zapisywane na tym telefonie przy każdym czyszczeniu. Stuknij, aby znów pokazać miejsce na mapie.', histClear:'Wyczyść historię',
   diag:'Diagnostyka', diagNote:'Te testy działają osobno i nigdy nie zmieniają twojego odczytu.',
   selfTest:'Uruchom autotest dekodera', play:'Odtwórz transmisję testową', stopPlay:'Zatrzymaj transmisję testową',
   pass:'Zaliczony', fail:'Niezaliczony',
@@ -697,6 +735,7 @@ es:{
   padHint:'Toque = corto · mantener = largo. Se registra con el quinto símbolo.',
   key:'Pulsar', spaceHint:'En ordenador funciona la barra espaciadora',
   clear:'Borrar todo',
+  tabType:'Teclear', typeHint:'Toca los dígitos en orden: 1–6 son las coordenadas, 7–10 el código del teclado.', skip:'Saltar', del:'Borrar', stTyped:'{n} de 10 tecleados. <span>El punto aparece en el mapa cuando estén los dígitos 1–6.</span>', histLabel:'Números recientes', histNote:'Se guardan en este teléfono cada vez que borras. Toca uno para volver a verlo en el mapa.', histClear:'Borrar historial',
   diag:'Diagnóstico', diagNote:'Estas pruebas funcionan por separado y nunca tocan tu lectura.',
   selfTest:'Autoprueba del decodificador', play:'Reproducir emisión de prueba', stopPlay:'Detener emisión de prueba',
   pass:'Correcto', fail:'Fallo',
@@ -737,6 +776,7 @@ fr:{
   padHint:'Appui bref = court · maintien = long. Validé au 5e symbole.',
   key:'Clé', spaceHint:'Sur ordinateur, la barre d’espace marche aussi',
   clear:'Tout effacer',
+  tabType:'Saisir', typeHint:'Tape les chiffres dans l’ordre : 1–6 sont les coordonnées, 7–10 le code du clavier.', skip:'Passer', del:'Effacer', stTyped:'{n} sur 10 saisis. <span>Le point apparaît sur la carte dès que les chiffres 1–6 sont là.</span>', histLabel:'Numéros récents', histNote:'Enregistrés sur ce téléphone à chaque effacement. Touche-en un pour revoir l’endroit sur la carte.', histClear:'Effacer l’historique',
   diag:'Diagnostic', diagNote:'Ces tests tournent à part et ne touchent jamais ton affichage.',
   selfTest:'Lancer l’autotest du décodeur', play:'Jouer une émission test', stopPlay:'Arrêter l’émission test',
   pass:'Réussi', fail:'Échec',
@@ -777,6 +817,7 @@ fr:{
   padHint:'Toque = curto · segurar = longo. Registra no 5º símbolo.',
   key:'Chave', spaceHint:'No computador, a barra de espaço funciona',
   clear:'Limpar tudo',
+  tabType:'Digitar', typeHint:'Toque os dígitos em ordem: 1–6 são as coordenadas, 7–10 o código do teclado.', skip:'Pular', del:'Apagar', stTyped:'{n} de 10 digitados. <span>O ponto aparece no mapa quando os dígitos 1–6 estiverem preenchidos.</span>', histLabel:'Números recentes', histNote:'Salvos neste celular a cada limpeza. Toque em um para ver o local de novo no mapa.', histClear:'Limpar histórico',
   diag:'Diagnóstico', diagNote:'Estes testes rodam à parte e nunca mexem na sua leitura.',
   selfTest:'Rodar autoteste do decodificador', play:'Tocar transmissão de teste', stopPlay:'Parar transmissão de teste',
   pass:'Passou', fail:'Falhou',
@@ -843,11 +884,13 @@ let asm = new MessageAssembler();
 // Elements whose text depends on state re-render through here when the language changes.
 const live = new Map();
 function setLive(el, fn){ live.set(el, fn); fn(); }
-let source = null;           // null | 'listen' | 'keyed'
+let source = null;           // null | 'listen' | 'keyed' | 'typed'
 let keyedRaw = '';
+let typed = Array(10).fill(null), typedPos = 0;   // Type tab: digits by slot, next slot to fill
 
 // ---------- readout ----------
 function cells(){
+  if(source==='typed') return {r:{cells: typed.map((d,i)=>({d, n:0, state: d ? 'confirmed' : 'empty', cur: i===typedPos}))}, waiting:false};
   const r = asm.result(true);
   const waiting = source==='listen' && !asm.hasStart();
   if(waiting) r.cells = r.cells.map(()=>({d:null,n:0,state:'empty'}));
@@ -855,13 +898,13 @@ function cells(){
 }
 function render(){
   const {r, waiting} = cells();
-  const slot = c => `<span class="slot s-${c.state}"><b>${c.d ?? '_'}</b><small>${c.n>1?'×'+c.n:(c.n?'×1':'&nbsp;')}</small></span>`;
+  const slot = c => `<span class="slot s-${c.state}${c.cur?' cur':''}"><b>${c.d ?? '_'}</b><small>${c.n>1?'×'+c.n:(c.n?'×1':'&nbsp;')}</small></span>`;
   const grp = (ax, cs) => `<span class="grp"><span class="ax">${ax}</span><span class="trip">${cs.map(slot).join('')}</span></span>`;
   $('gridOut').innerHTML = grp('X ↔', r.cells.slice(0,3)) + '<span class="gapx"></span>' + grp('Y ↕', r.cells.slice(3,6));
   $('codeOut').innerHTML = r.cells.slice(6,10).map(slot).join('');
   const g6 = r.cells.slice(0,6);
   setMapPin(!waiting && g6.every(c=>c.d) ? g6.map(c=>c.d).join('') : null);
-  if(source && !waiting && !asm._ok && r.cells.every(c=>c.d)){ asm._ok = true; track('decode_success'); }
+  if(source && source!=='typed' && !waiting && !asm._ok && r.cells.every(c=>c.d)){ asm._ok = true; track('decode_success'); }
   $('copyGrid').disabled = !r.cells.slice(0,6).every(c=>c.d);
   $('copyCode').disabled = !r.cells.slice(6).every(c=>c.d);
 
@@ -872,6 +915,7 @@ function render(){
   let cls='', msg='';
   if(!source){ msg = t('stNothing'); }
   else if(waiting){ cls='wait'; msg = t('stLining', {n:asm.digits.length}); }
+  else if(source==='typed'){ cls = got===10 ? 'ok' : 'wait'; msg = t('stTyped', {n:got}); }
   else if(bad){ cls='bad'; msg = t('stConflict', {n:bad}); }
   else if(conf===10){ cls='ok'; msg = t('stAllConf'); }
   else if(got===10){ cls='ok'; msg = t('stAllHeard', {n:conf}); }
@@ -883,14 +927,60 @@ function render(){
   box.className = 'align '+cls; txt.innerHTML = msg;
 }
 
-function clearAll(){
+// Wipe the readout and every input mode (callers save it to history first with archive()).
+function resetReadout(){
   if(stream) stopListen();
   asm = new MessageAssembler(); source=null; keyedRaw=''; liveRaw='';
+  typed = Array(10).fill(null); typedPos = 0;
   resetKeys();
   all('[data-raw]').forEach(e=>e.textContent=''); $('rawListen').textContent='';
-  render();
 }
+function clearAll(){ archive(); resetReadout(); render(); }
 $('clearBtn').onclick = clearAll;
+
+// ---------- recent numbers (kept on this device only) ----------
+const HKEY = 'bd-history', HMAX = 15;
+function loadHist(){
+  try{ const h = JSON.parse(localStorage.getItem(HKEY) || '[]');
+    return Array.isArray(h) ? h.filter(e => e && /^[\d_]{10}$/.test(e.d) && +e.t > 0).slice(0, HMAX) : []; }
+  catch{ return []; }
+}
+let hist = loadHist();
+function saveHist(){ try{ localStorage.setItem(HKEY, JSON.stringify(hist)); }catch{} }
+const screenDigits = () => cells().r.cells.map(c=>c.d ?? '_').join('');
+// Save what is on screen, complete or not. The same digits move to the top instead of repeating.
+function archive(){
+  if(!source) return;
+  const d = screenDigits();
+  if(!/\d/.test(d)) return;
+  hist = [{d, t:Date.now()}, ...hist.filter(e=>e.d!==d)].slice(0, HMAX);
+  saveHist(); renderHist();
+}
+function renderHist(){
+  $('histBox').hidden = !hist.length;
+  const today = new Date().toDateString();
+  const tf = new Intl.DateTimeFormat(LANG, {hour:'2-digit', minute:'2-digit'});
+  const df = new Intl.DateTimeFormat(LANG, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+  $('histList').innerHTML = hist.map((e, i) => {
+    const dt = new Date(e.t), when = (dt.toDateString()===today ? tf : df).format(dt);
+    return `<button data-i="${i}"><span class="hd"><i>X</i><b>${e.d.slice(0,3)}</b><i>Y</i><b>${e.d.slice(3,6)}</b><i>#</i><b>${e.d.slice(6,10)}</b></span><time datetime="${dt.toISOString()}">${when}</time></button>`;
+  }).join('');
+}
+// Put a saved entry back on screen as typed digits, so the map pins it and it can be edited.
+function restore(d){
+  if(screenDigits()!==d) archive();
+  resetReadout();
+  source = 'typed';
+  typed = [...d].map(c => c==='_' ? null : c);
+  const last = typed.reduce((a, c, i) => c ? i : a, -1);
+  typedPos = Math.min(10, last + 1);
+  selectPane('type'); render();
+  if(mapPin && !mapPin.out) $('mapPin').onclick();
+  document.querySelector('.mapbox').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'center'});
+}
+$('histList').onclick = e => { const b = e.target.closest('button[data-i]'); if(b && hist[+b.dataset.i]) restore(hist[+b.dataset.i].d); };
+$('histClear').onclick = () => { hist = []; saveHist(); renderHist(); };
+setLive($('histList'), renderHist);
 
 async function copyText(btn, text){
   const done = label => { btn.classList.add('done'); btn.textContent=label; setTimeout(()=>{btn.classList.remove('done'); btn.textContent=t('copy');},1400); };
@@ -903,11 +993,22 @@ $('copyCode').onclick = () => { track('copy_code'); copyText($('copyCode'), digi
 
 // ---------- tabs ----------
 let pane='listen';
-all('.tabs button').forEach(b => b.onclick = () => {
-  all('.tabs button').forEach(x => x.setAttribute('aria-selected', x===b));
-  pane = b.dataset.pane;
-  ['listen','twokey','paddle'].forEach(p => $('pane-'+p).hidden = p!==pane);
-});
+function selectPane(p){
+  pane = p;
+  all('.tabs button').forEach(x => x.setAttribute('aria-selected', x.dataset.pane===p));
+  ['listen','twokey','paddle','type'].forEach(k => $('pane-'+k).hidden = k!==p);
+}
+all('.tabs button').forEach(b => b.onclick = () => selectPane(b.dataset.pane));
+
+// ---------- Type: enter known digits straight from the number pad ----------
+function typePress(k){
+  if(source!=='typed'){ archive(); resetReadout(); source='typed'; }
+  if(k==='del'){ if(typedPos>0){ typedPos--; typed[typedPos]=null; } }
+  else if(k==='skip'){ if(typedPos<10) typedPos++; }
+  else if(typedPos<10){ typed[typedPos++] = k; }
+  render();
+}
+all('#numpad button').forEach(b => b.addEventListener('click', () => { flash(b); typePress(b.dataset.num); }));
 
 // ---------- sidetone ----------
 let sideCtx=null, osc=null;
@@ -921,7 +1022,7 @@ function tone(on, ms){
 
 // ---------- keyed input (shared by Two-key and Paddle) ----------
 function startKeyed(){
-  if(source==='listen'){ if(stream) stopListen(); asm = new MessageAssembler(); $('rawListen').textContent=''; }
+  if(source==='listen' || source==='typed'){ archive(); if(stream) stopListen(); asm = new MessageAssembler(); $('rawListen').textContent=''; typed = Array(10).fill(null); typedPos = 0; }
   if(source!=='keyed'){ source='keyed'; track('paddle_used'); }
 }
 function addKeyedChar(code){
@@ -1007,7 +1108,12 @@ all('[data-mark]').forEach(b=>b.onclick=mark);
 
 // Keyboard
 window.addEventListener('keydown', e=>{
-  if(e.target.closest && e.target.closest('summary, select')) return;
+  if(e.target.closest && e.target.closest('summary, select, input, textarea, dialog')) return;
+  if(pane==='type' && !e.ctrlKey && !e.metaKey && !e.altKey){
+    const m = /^(?:Digit|Numpad)([0-9])$/.exec(e.code);
+    if(m){ e.preventDefault(); typePress(m[1]); return; }
+    if(e.code==='Backspace'){ e.preventDefault(); typePress('del'); return; }
+  }
   if(pane==='twokey'){
     if(['ArrowLeft','Period','NumpadDecimal'].includes(e.code)){ e.preventDefault(); flash($('dotKey')); twoPress('.'); }
     else if(['ArrowRight','Minus','NumpadSubtract'].includes(e.code)){ e.preventDefault(); flash($('dashKey')); twoPress('-'); }
@@ -1031,7 +1137,9 @@ async function startListen(){
   }
   showNote('listening');
   ctx = new (window.AudioContext||window.webkitAudioContext)(); await ctx.resume();
-  asm = new MessageAssembler(); source='listen'; liveRaw=''; keyedRaw=''; showRaw(); resetKeys(); render();
+  archive();
+  asm = new MessageAssembler(); source='listen'; liveRaw=''; keyedRaw=''; typed = Array(10).fill(null); typedPos = 0;
+  showRaw(); resetKeys(); $('rawListen').textContent=''; render();
   track('listen_started');
   const dec = new MorseDecoder({mode:'audio',
     onChar:c=>{ asm.addChar(c); if(!c || !/\d/.test(c)) trackFail(); liveRaw += c||'?'; $('rawListen').textContent=liveRaw.slice(-60); render(); },
@@ -1366,7 +1474,7 @@ $('privacyBtn').onclick = () => { $('consentBar').hidden = false; $('consentYes'
 if(!consentState()) $('consentBar').hidden = false;
 
 // Bug reports: written to Firestore bugReports through the REST API; the security rules allow create only.
-const APP_VERSION = '2026.11.01';
+const APP_VERSION = '2026.11.22';
 const BUG_URL = 'https://firestore.googleapis.com/v1/projects/bunker-decoder/databases/(default)/documents/bugReports?key=AIzaSyDux_0DbSaXiSLUt-D4KopT3LT8tSAHX3I';
 function bugStatus(key, cls){ const el = $('bugStatus'); el.className = 'note ' + (cls || ''); el.textContent = key ? t(key) : ''; }
 $('bugBtn').onclick = () => {
